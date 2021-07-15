@@ -31,7 +31,21 @@
 extern const char* gp_serial;
 
 typedef struct {
+  //SNES
   uint32_t buttons : 24;
+  
+  //PCE
+  //uint8_t buttons : 4;
+
+  //NG
+  //uint16_t buttons : 12;
+
+  //NES
+  //uint8_t buttons;
+
+  //GEN
+  //uint16_t buttons;
+
   int8_t X;
   int8_t Y;  
 } GamepadReport;
@@ -43,7 +57,7 @@ class Gamepad_ : public PluggableUSBModule
     uint8_t reportId;
 
   protected:
-    int getInterface(uint8_t* interfaceCount);
+    int getInterface(uint8_t* interfaceCount);//, int SYSTEM);
     int getDescriptor(USBSetup& setup);
     uint8_t getShortName(char *name);
     bool setup(USBSetup& setup);
@@ -54,7 +68,8 @@ class Gamepad_ : public PluggableUSBModule
     
   public:
     GamepadReport _GamepadReport;
-    Gamepad_(void);
+    //Gamepad_(void);
+    Gamepad_(int SYSTEM);
     void reset(void);
     void send();
 };

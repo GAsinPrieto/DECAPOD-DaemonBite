@@ -1,8 +1,4 @@
-#include "Gamepad_NG.h"
-#include "Gamepad_NES.h"
-#include "Gamepad_SNES.h"
-#include "Gamepad_GEN.h"
-#include "Gamepad_PCE.h"
+#include "Gamepad.h"
 #include "SegaControllers32U4.h"
 
 
@@ -210,7 +206,8 @@ void setup() {
 
 void loop() {
 
-  Gamepad_ Gamepad[GAMEPAD_COUNT];
+  Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
+  //Gamepad_ Gamepad[GAMEPAD_COUNT];
 
   if (SISTEMA == GENESIS_)
   {
@@ -226,7 +223,7 @@ void loop() {
 
       while (1)
       {
-        //Serial.println("SNES");
+        Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -277,7 +274,7 @@ void loop() {
     case NES_:
       while (1)
       {
-        //Serial.println("NES");
+        Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -346,9 +343,6 @@ void loop() {
       break;
 
     case PCE_:
-
-
-
       while (1)
       {
         Serial.println("PCE");
