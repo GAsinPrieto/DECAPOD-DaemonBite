@@ -44,6 +44,7 @@ const char *gp_serial = "Sega/C= to USB";
 //  6     14  PB3                 PD2
 //  7      7  PE6                 PB5
 //  9     15  PB1                 PD7
+//PD0 -- select port
 
 //  1     TXO PD3
 //  2     RXI PD2

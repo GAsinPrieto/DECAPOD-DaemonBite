@@ -26,12 +26,15 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include "HID.h"
 
 extern const char* gp_serial;
 
+// The numbers after colon are bit fields, meaning how many bits the field uses.
+// Remove those if there are problems
 typedef struct {
-  uint32_t buttons : 24;
+  uint16_t buttons;
   int8_t X;
   int8_t Y;  
 } GamepadReport;

@@ -1,4 +1,10 @@
-#include "Gamepad.h"
+#include "Gamepad_NG.h"
+#include "Gamepad_NES.h"
+#include "Gamepad_SNES.h"
+#include "Gamepad_GEN.h"
+#include "Gamepad_PCE.h"
+#include "SegaControllers32U4.h"
+
 
 #define NOT_SELECTED 0
 #define NES_ 1
@@ -41,7 +47,7 @@
 #define RIGHT 0x08
 
 // Set up USB HID gamepads
-Gamepad_ Gamepad[GAMEPAD_COUNT];
+//Gamepad_ Gamepad[GAMEPAD_COUNT];
 
 //SNES;
 #define MICROS_LATCH_SNES      10 // 12µs according to specs (8 seems to work fine)
@@ -54,6 +60,12 @@ enum ControllerType {
   SNES,
   NTT
 };
+
+//GENESIS
+SegaControllers32U4 controllers;
+
+// Controller previous states
+word lastState[2] = {1, 1};
 
 
 
@@ -75,13 +87,13 @@ uint8_t gpBit[GAMEPAD_COUNT_MAX] = {B00000010, B00000100, B10000000, B0100000};
 //SNES
 ControllerType controllerType[GAMEPAD_COUNT_MAX] = {NONE, NONE};
 uint32_t btnBits_SNES[32] = {0x10, 0x40, 0x400, 0x800, UP, DOWN, LEFT, RIGHT, 0x20, 0x80, 0x100, 0x200, // Standard SNES controller
-                        0x10000000, 0x20000000, 0x40000000, 0x80000000, 0x1000, 0x2000, 0x4000, 0x8000, // NTT Data Keypad (NDK10)
-                        0x10000, 0x20000, 0x40000, 0x80000, 0x100000, 0x200000, 0x400000, 0x800000,
-                        0x1000000, 0x2000000, 0x4000000, 0x8000000
-                       };
+                             0x10000000, 0x20000000, 0x40000000, 0x80000000, 0x1000, 0x2000, 0x4000, 0x8000, // NTT Data Keypad (NDK10)
+                             0x10000, 0x20000, 0x40000, 0x80000, 0x100000, 0x200000, 0x400000, 0x800000,
+                             0x1000000, 0x2000000, 0x4000000, 0x8000000
+                            };
 uint8_t buttonCount = 32;
 
-uint8_t btnBits_NES[BUTTON_COUNT] = {0x20,0x10,0x40,0x80,UP,DOWN,LEFT,RIGHT};
+uint8_t btnBits_NES[BUTTON_COUNT] = {0x20, 0x10, 0x40, 0x80, UP, DOWN, LEFT, RIGHT};
 
 
 //PCE
@@ -123,12 +135,9 @@ int outputValueNEOGEO = 0;        // value output to the PWM (analog out)
 int outputValueGENESIS = 0;        // value output to the PWM (analog out)
 int SISTEMA = 0;
 
-
 const char *gp_serial = "DECAPOD";
 
 void setup() {
-  // put your setup code here, to run once:
-  //Serial.begin(9600);
 
   pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
@@ -163,47 +172,21 @@ void setup() {
   pinMode(pinNES, INPUT);
   pinMode(pinNEOGEO, INPUT);
   pinMode(pinGENESIS, INPUT);
+  pinMode(pinSelect, OUTPUT);
 
   if (SISTEMA == NES || SISTEMA == SNES) {
-    //NES
-
-    //}
-    // Setup latch and clock pins (2,3 or PD1, PD0) pasan a ser 9 y 4 respectivamente
-    /*DDRD  |=  B00000011; // output
-      PORTD &= ~B00000011; // low
-
-      // Setup data pins (A0-A3 or PF7-PF4)
-      DDRF  &= ~B11110000; // inputs
-      PORTF |=  B11110000; // enable internal pull-ups
-    */
-    DDRD  |=  B10010000;//B00000011; // output
-    DDRB  |=  B00100000;//B00000011; // output
-    PORTD &= ~B10010000;//~B00000011; // low
-    PORTB &= ~B00100000;//~B00000011; // low
-
-    // Setup data pins (A0-A3 or PF7-PF4) pasan a ser
-    //DDRF  &= ~B11110000; // inputs
-    //PORTF |=  B11110000; // enable internal pull-ups
-    DDRD  &= ~B00000110; // inputs
-    PORTD |=  B00000110; // enable internal pull-ups
-
-
     delay(500);
 
     //SNES
-    if (SISTEMA==SNES) detectControllerTypes();
+    if (SISTEMA == SNES) detectControllerTypes();
   }
   else if (SISTEMA == PCE_) {
     //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L) 
+    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
     DDRD  &= ~B00011100;
     DDRB  &= ~B00100000;
     PORTD |=  B00011100;
     PORTB |=  B00100000;
-    
-    // Set F4-F7 as inputs and enable pull-up resistors (port2 data pins) -->
-    /*DDRF  &= ~B11110000;
-    PORTF |=  B11110000;*/
 
     // Set B1 and B3 as outputs and set them LOW --> B4 (SEL), D0 (OE)
     PORTB &= ~B00010000;
@@ -214,6 +197,11 @@ void setup() {
     // Wait for the controller(s) to settle
     delay(100);
   }
+  /*else if (SISTEMA == GENESIS_)
+    {
+    for (byte gp = 0; gp <= 1; gp++)
+      Gamepad[gp].reset();
+    }*/
 
 
 
@@ -222,42 +210,23 @@ void setup() {
 
 void loop() {
 
-  outputValueSNES = 255;//map(200, 0, 1023, 0, 255);
-  outputValueNES = 255;//map(300, 0, 1023, 0, 255);
-  outputValueNEOGEO = 255;//map(400, 0, 1023, 0, 255);
-  outputValueGENESIS = 255;//map(500, 0, 1023, 0, 255);
+  Gamepad_ Gamepad[GAMEPAD_COUNT];
+
+  if (SISTEMA == GENESIS_)
+  {
+    for (byte gp = 0; gp <= 1; gp++)
+      Gamepad[gp].reset();
+  }
 
   switch (SISTEMA) {
     case NOT_SELECTED:
-      /*analogWrite(pinSNES, 255);
-        if (analogRead(pinSelect) >= 1020) SISTEMA = SNES_; //Serial.println("SNES");
-        else {
-        analogWrite(pinSNES, 0);
-        analogWrite(pinNES, 255);
-        if (analogRead(pinSelect) >= 1020) SISTEMA = NES_; //Serial.println("NES");
-        else {
-          analogWrite(pinNES, 0);
-          analogWrite(pinNEOGEO, 255);
-          if (analogRead(pinSelect) >= 1020) SISTEMA = NEOGEO_; //Serial.println("NEOGEO");
-          else {
-            analogWrite(pinNEOGEO, 0);
-            analogWrite(pinGENESIS, 255);
-            if (analogRead(pinSelect) >= 1020) SISTEMA = GENESIS_; //Serial.println("GENESIS");
-            else {
-              analogWrite(pinGENESIS, 0);
-              SISTEMA = PCE_;//Serial.println("PCE");
-            }
-          }
-        }
-
-        }*/
       break;
 
     case SNES_:
-    
+
       while (1)
       {
-        Serial.println("SNES");
+        //Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -306,17 +275,9 @@ void loop() {
       break;
 
     case NES_:
-
-
-
-
-
-
-
-
       while (1)
       {
-        Serial.println("NES");
+        //Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -351,11 +312,37 @@ void loop() {
       break;
 
     case GENESIS_:
-      Serial.println("GENESIS");
+      //Serial.println("GENESIS");
+      while (1)
+      {
+        controllers.readState();
+        /*sendState(0);
+          sendState(1);*/
+        gp = 0;
+        if (controllers.currentState[gp] != lastState[gp])
+        {
+          Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
+          Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+          Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+          Gamepad[gp].send();
+          lastState[gp] = controllers.currentState[gp];
+        }
+
+
+        gp = 1;
+        if (controllers.currentState[gp] != lastState[gp])
+        {
+          Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
+          Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+          Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+          Gamepad[gp].send();
+          lastState[gp] = controllers.currentState[gp];
+        }
+      }
       break;
 
     case NEOGEO_:
-      Serial.println("NEOGEO");
+      //Serial.println("NEOGEO");
       break;
 
     case PCE_:
@@ -417,57 +404,32 @@ void loop() {
 
 
   }
-  // put your main code here, to run repeatedly:
-  /*analogWrite(pinSNES, 255);
-    if (analogRead(pinSelect)>=1020) Serial.println("SNES");
-    else{
-    analogWrite(pinSNES, 0);
-    analogWrite(pinNES, 255);
-    if (analogRead(pinSelect)>=1020) Serial.println("NES");
-    else{
-      analogWrite(pinNES, 0);
-      analogWrite(pinNEOGEO, 255);
-      if (analogRead(pinSelect)>=1020) Serial.println("NEOGEO");
-      else{
-        analogWrite(pinNEOGEO, 0);
-        analogWrite(pinGENESIS, 255);
-        if (analogRead(pinSelect)>=1020) Serial.println("GENESIS");
-        else {
-          analogWrite(pinGENESIS, 0);
-          Serial.println("PCE");
-        }
-      }
-    }
-    }*/
 
-  /*  analogWrite(pinNES, outputValueNES);
-    analogWrite(pinNEOGEO, outputValueNEOGEO);
-    analogWrite(pinGENESIS, outputValueGENESIS);
 
-    Serial.println(analogRead(pinSelect));*/
   delay(1000);
 }
+
 
 void sendLatch()
 {
   // Send a latch pulse to the NES controller(s)
   PORTB |=  B00100000; // Set HIGH
-  if (SISTEMA==NES) delayMicroseconds(MICROS_LATCH_NES);
-  else if (SISTEMA==SNES) delayMicroseconds(MICROS_LATCH_SNES);
+  if (SISTEMA == NES) delayMicroseconds(MICROS_LATCH_NES);
+  else if (SISTEMA == SNES) delayMicroseconds(MICROS_LATCH_SNES);
   PORTB &= ~B00100000; // Set LOW
-  if (SISTEMA==NES) delayMicroseconds(MICROS_PAUSE_NES);
-  if (SISTEMA==SNES) delayMicroseconds(MICROS_PAUSE_SNES);
+  if (SISTEMA == NES) delayMicroseconds(MICROS_PAUSE_NES);
+  if (SISTEMA == SNES) delayMicroseconds(MICROS_PAUSE_SNES);
 }
 
 void sendClock()
 {
   // Send a clock pulse to the NES controller(s)
   PORTD |=  B10010000; // Set HIGH
-  if (SISTEMA==NES) delayMicroseconds(MICROS_CLOCK_NES);
-  if (SISTEMA==SNES) delayMicroseconds(MICROS_CLOCK_SNES);
+  if (SISTEMA == NES) delayMicroseconds(MICROS_CLOCK_NES);
+  if (SISTEMA == SNES) delayMicroseconds(MICROS_CLOCK_SNES);
   PORTD &= ~B10010000; // Set LOW
-  if (SISTEMA==NES) delayMicroseconds(MICROS_PAUSE_NES);
-  if (SISTEMA==SNES) delayMicroseconds(MICROS_PAUSE_SNES);
+  if (SISTEMA == NES) delayMicroseconds(MICROS_PAUSE_NES);
+  if (SISTEMA == SNES) delayMicroseconds(MICROS_PAUSE_SNES);
 }
 
 
@@ -516,3 +478,17 @@ void detectControllerTypes()
   // Set updated button count to avoid unneccesary button reads (for simpler controller types)
   buttonCount = buttonCountNew;
 }
+/*
+  //GENESIS
+  void sendState(byte gp)
+  {
+  // Only report controller state if it has changed
+  if (controllers.currentState[gp] != lastState[gp])
+  {
+    Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
+    Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+    Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+    Gamepad[gp].send();
+    lastState[gp] = controllers.currentState[gp];
+  }
+  }*/
