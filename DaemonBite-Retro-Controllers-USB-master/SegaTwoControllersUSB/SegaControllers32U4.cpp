@@ -86,7 +86,7 @@ void SegaControllers32U4::readState()
   delayMicroseconds(SC_CYCLE_DELAY);
 
   // Read all input registers
-  _inputReg1 = PINF;
+  //_inputReg1 = PINF;
   _inputReg2 = PINB;
   _inputReg3 = PIND;
 
@@ -116,7 +116,7 @@ void SegaControllers32U4::readPort1()
         // Check if six button mode is active
         if(_sixButtonMode[0])
         {
-          // Read input pins for X, Y, Z, Mode
+          // Read input pins for X, Y, Z, Mode  //PB4 y PD4, PD3, PD1 en lugar de PF4-7
           (bitRead(_inputReg1, DB9_PIN1_BIT1) == LOW) ? currentState[0] |= SC_BTN_Z : currentState[0] &= ~SC_BTN_Z;
           (bitRead(_inputReg1, DB9_PIN2_BIT1) == LOW) ? currentState[0] |= SC_BTN_Y : currentState[0] &= ~SC_BTN_Y;
           (bitRead(_inputReg1, DB9_PIN3_BIT1) == LOW) ? currentState[0] |= SC_BTN_X : currentState[0] &= ~SC_BTN_X;
