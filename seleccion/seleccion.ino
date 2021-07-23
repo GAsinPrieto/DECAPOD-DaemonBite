@@ -171,6 +171,26 @@ void setup() {
   pinMode(pinSelect, OUTPUT);
 
   if (SISTEMA == NES || SISTEMA == SNES) {
+
+
+
+
+
+    //GAP: traído del pasado
+    DDRD  |=  B10010000;//B00000011; // output
+    DDRB  |=  B00100000;//B00000011; // output
+    PORTD &= ~B10010000;//~B00000011; // low
+    PORTB &= ~B00100000;//~B00000011; // low
+
+    // Setup data pins (A0-A3 or PF7-PF4) pasan a ser
+    //DDRF  &= ~B11110000; // inputs
+    //PORTF |=  B11110000; // enable internal pull-ups
+    DDRD  &= ~B00000110; // inputs
+    PORTD |=  B00000110; // enable internal pull-ups
+    ////////////////////////GAP
+
+    
+    
     delay(500);
 
     //SNES
