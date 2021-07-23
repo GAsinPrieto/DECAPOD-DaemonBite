@@ -170,6 +170,28 @@ void setup() {
   pinMode(pinGENESIS, INPUT);
   pinMode(pinSelect, OUTPUT);
 
+  
+  /*else if (SISTEMA == GENESIS_)
+    {
+    for (byte gp = 0; gp <= 1; gp++)
+      Gamepad[gp].reset();
+    }*/
+
+
+
+
+}
+
+void loop() {
+
+  Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
+  //Gamepad_ Gamepad[GAMEPAD_COUNT];
+
+  if (SISTEMA == GENESIS_)
+  {
+    for (byte gp = 0; gp <= 1; gp++)
+      Gamepad[gp].reset();
+  }
   if (SISTEMA == NES || SISTEMA == SNES) {
 
 
@@ -212,27 +234,6 @@ void setup() {
 
     // Wait for the controller(s) to settle
     delay(100);
-  }
-  /*else if (SISTEMA == GENESIS_)
-    {
-    for (byte gp = 0; gp <= 1; gp++)
-      Gamepad[gp].reset();
-    }*/
-
-
-
-
-}
-
-void loop() {
-
-  Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
-  //Gamepad_ Gamepad[GAMEPAD_COUNT];
-
-  if (SISTEMA == GENESIS_)
-  {
-    for (byte gp = 0; gp <= 1; gp++)
-      Gamepad[gp].reset();
   }
 
   switch (SISTEMA) {
