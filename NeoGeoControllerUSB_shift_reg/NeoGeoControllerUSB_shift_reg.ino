@@ -38,28 +38,78 @@ const char *gp_serial = "NeoGeo to USB";
 shift_74597 myShifter = shift_74597(QH, SCK, RCK, SLOAD);//, SCLR);
 
 
-Gamepad_ Gamepad;           // Set up USB HID gamepad
-bool usbUpdate = false;     // Should gamepad data be sent to USB?
+Gamepad_ Gamepad[2];           // Set up USB HID gamepad
+bool usbUpdate1 = false;     // Should gamepad data be sent to USB?
+bool usbUpdate2 = false;     // Should gamepad data be sent to USB?
 bool debounce = DEBOUNCE;   // Debounce?
 uint8_t  pin;               // Used in for loops
 uint32_t millisNow = 0;     // Used for Diddly-squat-Delay-Debouncing™
 
-uint8_t  axesDirect = 0x0f;
-uint8_t  axes = 0x0f;
-uint8_t  axesPrev = 0x0f;
+uint8_t  axesDirect1 = 0x0f;
+uint8_t  axesDirect2 = 0x0f;
+uint8_t  axes1 = 0x0f;
+uint8_t  axes2 = 0x0f;
+uint8_t  axesPrev1 = 0x0f;
+uint8_t  axesPrev2 = 0x0f;
 uint8_t  axesBits[4] = {0x10,0x20,0x40,0x80};
 uint32_t axesMillis[4];
 
-uint16_t buttonsDirect = 0;
-uint16_t buttons = 0;
-uint16_t buttonsPrev = 0;
+uint16_t buttonsDirect1 = 0;
+uint16_t buttonsDirect2 = 0;
+uint16_t buttons1 = 0;
+uint16_t buttons2 = 0;
+uint16_t buttonsPrev1 = 0;
+uint16_t buttonsPrev2 = 0;
 uint16_t buttonsBits[12] = {0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x100,0x200,0x400,0x800};
 uint32_t buttonsMillis[12];
+
+char myInput0;
+char myInput1;
+char myInput2;
 
 #ifdef DEBUG
   char buf[16];
   uint32_t millisSent = 0;
 #endif
+
+/*unsigned char rotl(unsigned char c)
+{
+    return (c << 1) | (c >> 7);
+}*/
+
+uint8_t reverse(uint8_t in)
+{
+  uint8_t out;
+  out = 0;
+  if (in & 0x01) out |= 0x80;
+  if (in & 0x02) out |= 0x40;
+  if (in & 0x04) out |= 0x20;
+  if (in & 0x08) out |= 0x10;
+  if (in & 0x10) out |= 0x08;
+  if (in & 0x20) out |= 0x04;
+  if (in & 0x40) out |= 0x02;
+  if (in & 0x80) out |= 0x01;
+
+  return(out);
+}
+
+/*inline uint16_t __attribute__((always_inline)) rotate_inline_asm(uint16_t in) {
+  asm ( "lsl %A0"              "\n\t"
+        "rol %B0"              "\n\t"
+        "adc %A0,__zero_reg__" "\n\t"
+        "lsl %A0"              "\n\t"
+        "rol %B0"              "\n\t"
+        "adc %A0,__zero_reg__" "\n\t"
+        "lsl %A0"              "\n\t"
+        "rol %B0"              "\n\t"
+        "adc %A0,__zero_reg__" "\n\t"
+        "lsl %A0"              "\n\t"
+        "rol %B0"              "\n\t"
+        "adc %A0,__zero_reg__" "\n\t"
+    : "=r" (in) : "0" (in)
+  );
+  return in;
+}*/
 
 void setup() 
 {
@@ -97,19 +147,20 @@ void loop()
   millisNow = millis();
 
   myShifter.load();
-  char myInput0 = myShifter.getByteReverse();
-  char myInput1 = myShifter.getByteReverse();
-  char myInput2 = myShifter.getByteReverse();
+  myInput0 = myShifter.getByte();
+  myInput1 = myShifter.getByte();
+  myInput2 = myShifter.getByte();
 
   for(uint8_t i=0; i<10; i++) // One iteration (when debounce is enabled) takes approximately 35µs to complete, so we don't need to check the time between every iteration
   {
     // Read axis and button inputs (bitwise NOT results in a 1 when button/axis pressed)
-    axesDirect = ~(myInput0 & B11110000);//~(PINF & B11110000);
-    buttonsDirect = ~((myInput0 & B00001111) | (myInput1 & B11110000) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+    axesDirect1 = ~(reverse(myInput0 & B00001111));//~(PINF & B11110000);
+    buttonsDirect1 = ~((myInput0 & B11110000)>>4 | (myInput1 & B00001111)<<4 | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
 
-//GAP: reverse buttons
-    buttonsDirect = ~((myInput0 & B00001111) | (myInput1 & B11110000) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+    axesDirect2 = ~((reverse(myInput1 & B11110000))<<4);//~(PINF & B11110000);
+    buttonsDirect2 = ~((myInput2) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
 
+    
 
     /*if(debounce)
     {
@@ -141,41 +192,73 @@ void loop()
     }
     else
     {*/
-      axes = axesDirect;
-      buttons = buttonsDirect;
+      axes1 = axesDirect1;
+      buttons1 = buttonsDirect1;
+      axes2 = axesDirect2;
+      buttons2 = buttonsDirect2;
     //}
   
     // Has axis inputs changed?
-    if(axes != axesPrev)
+    if(axes1 != axesPrev1)
     {
       // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
-      if(axes & B10000000)
-        Gamepad._GamepadReport.Y = -1;
-      else if(axes & B01000000)
-        Gamepad._GamepadReport.Y = 1;
+      if(axes1 & B10000000)
+        Gamepad[0]._GamepadReport.Y = -1;
+      else if(axes1 & B01000000)
+        Gamepad[0]._GamepadReport.Y = 1;
       else
-        Gamepad._GamepadReport.Y = 0;
+        Gamepad[0]._GamepadReport.Y = 0;
       // UP + DOWN = NEUTRAL
       //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
       // LEFT + RIGHT = NEUTRAL
-      Gamepad._GamepadReport.X = ((axes & B00010000)>>4) - ((axes & B00100000)>>5);
-      axesPrev = axes;
-      usbUpdate = true;
+      Gamepad[0]._GamepadReport.X = ((axes1 & B00010000)>>4) - ((axes1 & B00100000)>>5);
+      axesPrev1 = axes1;
+      usbUpdate1 = true;
+    }
+
+    if(axes2 != axesPrev2)
+    {
+      // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
+      if(axes2 & B10000000)
+        Gamepad[1]._GamepadReport.Y = -1;
+      else if(axes2 & B01000000)
+        Gamepad[1]._GamepadReport.Y = 1;
+      else
+        Gamepad[1]._GamepadReport.Y = 0;
+      // UP + DOWN = NEUTRAL
+      //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+      // LEFT + RIGHT = NEUTRAL
+      Gamepad[1]._GamepadReport.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
+      axesPrev2 = axes2;
+      usbUpdate2 = true;
     }
   
     // Has button inputs changed?
-    if(buttons != buttonsPrev)
+    if(buttons1 != buttonsPrev1)
     {
-      Gamepad._GamepadReport.buttons = buttons;
-      buttonsPrev = buttons;
-      usbUpdate = true;
+      Gamepad[0]._GamepadReport.buttons = buttons1;
+      buttonsPrev1 = buttons1;
+      usbUpdate1 = true;
+    }
+
+    if(buttons2 != buttonsPrev2)
+    {
+      Gamepad[1]._GamepadReport.buttons = buttons2;
+      buttonsPrev2 = buttons2;
+      usbUpdate2 = true;
     }
   
     // Should gamepad data be sent to USB?
-    if(usbUpdate)
+    if(usbUpdate1 || usbUpdate2)
     {
-      Gamepad.send();
-      usbUpdate = false;
+      if(usbUpdate1){
+        Gamepad[0].send();
+        usbUpdate1 = false;
+      }
+      if(usbUpdate2){
+        Gamepad[1].send();
+        usbUpdate2 = false;
+      }
 
       #ifdef DEBUG
         sprintf(buf, "%06lu: %d%d%d%d", millisNow-millisSent, ((axes & 0x10)>>4), ((axes & 0x20)>>5), ((axes & 0x40)>>6), ((axes & 0x80)>>7) );
