@@ -12,16 +12,20 @@
 class shift_74597{
 	private:
 		int _QH, _SCK, _RCK, _SLOAD;//, _SCLR;
+    uint8_t myPin_mask;
+    //volatile uint8_t *myPin_port;
 
 	public:
 		shift_74597(int QH, int SCK, int RCK, int SLOAD);//, int SCLR);
 		~shift_74597();
 
 		void init();
-		//void clear();
+		//void init(uint8_t myPin_mask, volatile uint8_t *myPin_port);
+    //void clear();
 		void load();
 		char getByte();
-		char getByteReverse();
+		//char getByte(uint8_t myPin_mask, uint8_t *myPin_port);
+    char getByteReverse();
 
 };
 
