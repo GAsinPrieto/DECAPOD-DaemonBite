@@ -243,19 +243,19 @@ void setup() {
 
 }
 
-Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
+//Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
   
 
 void loop() {
 
-  //Gamepad_ Gamepad[GAMEPAD_COUNT];
+  Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
   if (SISTEMA == GENESIS_)
   {
     for (byte gp = 0; gp <= 1; gp++)
       Gamepad[gp].reset();
   }
-  /*if (SISTEMA == NES || SISTEMA == SNES) {
+  if (SISTEMA == NES || SISTEMA == SNES) {
     DDRD  |=  B10010000;//B00000011; // output
     DDRB  |=  B00100000;//B00000011; // output
     PORTD &= ~B10010000;//~B00000011; // low
@@ -291,7 +291,7 @@ void loop() {
 
     // Wait for the controller(s) to settle
     delay(100);
-  }*/
+  }
   else if (SISTEMA == NEOGEO_) {
     // Initialize debouncing timestamps
     for (pin = 0; pin < 4; pin++)
@@ -310,7 +310,7 @@ void loop() {
     case NOT_SELECTED:
       break;
 
-    /*case SNES_:
+    case SNES_:
       while (1)
       {
         Serial.println("SNES");
@@ -399,13 +399,13 @@ void loop() {
       break;
 
     case GENESIS_:
-      //Serial.println("GENESIS");
       while (1)
       {
+        Serial.println("GENESIS");
         controllers.readState();
         /*sendState(0);
           sendState(1);*/
-        /*gp = 0;
+        gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
           Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
@@ -426,12 +426,12 @@ void loop() {
           lastState[gp] = controllers.currentState[gp];
         }
       }
-      break;*/
+      break;
 
     case NEOGEO_:
       //while (1)
       //{
-        //Serial.println("NEOGEO");
+        Serial.println("NEOGEO");
         // Get current time, the millis() function should take about 2µs to complete
         millisNow = millis();
 
@@ -570,7 +570,7 @@ void loop() {
       //}
       break;
 
-    /*case PCE_:
+    case PCE_:
       while (1)
       {
         Serial.println("PCE");
@@ -622,7 +622,7 @@ void loop() {
       }
 
 
-      break;*/
+      break;
 
 
   }
