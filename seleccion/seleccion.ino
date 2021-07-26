@@ -1,6 +1,6 @@
 #include "Gamepad.h"
-#include "SegaControllers32U4.h"
-#include "shift_74597.h"
+//#include "SegaControllers32U4.h"
+//#include "shift_74597.h"
 
 
 #define NOT_SELECTED 0
@@ -11,7 +11,7 @@
 #define GENESIS_ 5
 
 
-
+/*
 //NEO GEO
 #define QH 2 //PD1 IN
 #define SCK 4 //PD4 OUT
@@ -89,7 +89,7 @@ uint8_t reverse(uint8_t in)
 #define RIGHT_SH 1
 
 
-
+*/
 
 
 //NES
@@ -121,13 +121,13 @@ enum ControllerType {
   SNES,
   NTT
 };
-
+/*
 //GENESIS
 SegaControllers32U4 controllers;
 
 // Controller previous states
 word lastState[2] = {1, 1};
-
+*/
 
 
 
@@ -156,7 +156,7 @@ uint8_t buttonCount = 32;
 
 uint8_t btnBits_NES[BUTTON_COUNT] = {0x20, 0x10, 0x40, 0x80, UP, DOWN, LEFT, RIGHT};
 
-
+/*
 //PCE
 // Controllers
 uint8_t buttons_PCE[2][2]     = {{0, 0}, {0, 0}};
@@ -168,7 +168,7 @@ uint32_t microsEnable = 0;
 
 
 
-
+*/
 
 
 uint8_t gp = 0;
@@ -247,12 +247,12 @@ void loop() {
 
     Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
-    if (SISTEMA == GENESIS_)
+    /*if (SISTEMA == GENESIS_)
     {
       for (byte gp = 0; gp <= 1; gp++)
         Gamepad[gp].reset();
     }
-    else if (SISTEMA == NES || SISTEMA == SNES) {
+    else */if (SISTEMA == NES || SISTEMA == SNES) {
       DDRD  |=  B10010000;//B00000011; // output
       DDRB  |=  B00100000;//B00000011; // output
       PORTD &= ~B10010000;//~B00000011; // low
@@ -272,7 +272,7 @@ void loop() {
       //SNES
       if (SISTEMA == SNES) detectControllerTypes();
     }
-    else if (SISTEMA == PCE_) {
+    /*else if (SISTEMA == PCE_) {
       //PCE
       // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
       DDRD  &= ~B00011100;
@@ -303,7 +303,7 @@ void loop() {
       myShifter.init();//myPin_mask, &myPin_port);
     }
 
-
+*/
 
 
   switch (SISTEMA) {
@@ -313,7 +313,7 @@ void loop() {
     case SNES_:
       while (1)
       {
-        //Serial.println("SNES");
+        Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -364,13 +364,12 @@ void loop() {
     case NES_:
       while (1)
       {
-        //Serial.println("NES");
+        Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
           // Pulse latch
           sendLatch();
-
           for (uint8_t btn = 0; btn < BUTTON_COUNT; btn++)
           {
             for (gp = 0; gp < GAMEPAD_COUNT; gp++)
@@ -398,13 +397,11 @@ void loop() {
 
       break;
 
-    case GENESIS_:
+  /*  case GENESIS_:
       while (1)
       {
         //Serial.println("GENESIS");
         controllers.readState();
-        /*sendState(0);
-          sendState(1);*/
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
@@ -547,22 +544,7 @@ void loop() {
             
             //if(usbUpdate1){
             Gamepad[gp].send();
-            /*Serial.print("ejes 1 - ");
-            Serial.print(axes[0]);
-            Serial.print(" - directo - ");
-            Serial.println(axesDirect[0]);
-            Serial.print("botones 1 - ");
-            Serial.print(buttons_NG[0]);
-            Serial.print(" - directo - ");
-            Serial.println(buttonsDirect[0]);
-            Serial.print("ejes 2 - ");
-            Serial.print(axes[1]);
-            Serial.print(" - directo - ");
-            Serial.println(axesDirect[1]);
-            Serial.print("botones 2 - ");
-            Serial.print(buttons_NG[1]);
-            Serial.print(" - directo - ");
-            Serial.println(buttonsDirect[1]);*/
+            
             
             usbUpdate = false;
             //}
@@ -635,7 +617,7 @@ void loop() {
       }
 
 
-      break;
+      break;*/
 
 
   }
