@@ -134,131 +134,134 @@ void setup()
 
 void loop()
 {
-  // Get current time, the millis() function should take about 2µs to complete
-  millisNow = millis();
+  while (1) {
 
-  myShifter.load();
-  myInput0 = myShifter.getByte();
-  myInput1 = myShifter.getByte();
-  myInput2 = myShifter.getByte();
+    // Get current time, the millis() function should take about 2µs to complete
+    millisNow = millis();
 
-  //for(uint8_t i=0; i<10; i++) // One iteration (when debounce is enabled) takes approximately 35µs to complete, so we don't need to check the time between every iteration
-  //{
-  // Read axis and button inputs (bitwise NOT results in a 1 when button/axis pressed)
-  axesDirect[0] = ~(reverse(myInput0 & B00001111));//~(PINF & B11110000);
-  buttonsDirect[0] = ~((myInput0 & B11110000) >> 4 | (myInput1 & B00001111) << 4 | (B11110000 << 4)); //~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+    myShifter.load();
+    myInput0 = myShifter.getByte();
+    myInput1 = myShifter.getByte();
+    myInput2 = myShifter.getByte();
 
-  axesDirect[1] = ~((reverse(myInput1 & B11110000)) << 4); //~(PINF & B11110000);
-  buttonsDirect[1] = ~((myInput2) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+    //for(uint8_t i=0; i<10; i++) // One iteration (when debounce is enabled) takes approximately 35µs to complete, so we don't need to check the time between every iteration
+    //{
+    // Read axis and button inputs (bitwise NOT results in a 1 when button/axis pressed)
+    axesDirect[0] = ~(reverse(myInput0 & B00001111));//~(PINF & B11110000);
+    buttonsDirect[0] = ~((myInput0 & B11110000) >> 4 | (myInput1 & B00001111) << 4 | (B11110000 << 4)); //~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+
+    axesDirect[1] = ~((reverse(myInput1 & B11110000)) << 4); //~(PINF & B11110000);
+    buttonsDirect[1] = ~((myInput2) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
 
 
 
-  /*if(debounce)
-    {
-    // Debounce axes
-    for(pin=0; pin<4; pin++)
-    {
-      // Check if the current pin state is different to the stored state and that enough time has passed since last change
-      if((axesDirect & axesBits[pin]) != (axes & axesBits[pin]) && (millisNow - axesMillis[pin]) > DEBOUNCE_TIME)
+    /*if(debounce)
       {
-        // Toggle the pin, we can safely do this because we know the current state is different to the stored state
-        axes ^= axesBits[pin];
-        // Update the timestamp for the pin
-        axesMillis[pin] = millisNow;
+      // Debounce axes
+      for(pin=0; pin<4; pin++)
+      {
+        // Check if the current pin state is different to the stored state and that enough time has passed since last change
+        if((axesDirect & axesBits[pin]) != (axes & axesBits[pin]) && (millisNow - axesMillis[pin]) > DEBOUNCE_TIME)
+        {
+          // Toggle the pin, we can safely do this because we know the current state is different to the stored state
+          axes ^= axesBits[pin];
+          // Update the timestamp for the pin
+          axesMillis[pin] = millisNow;
+        }
       }
-    }
 
-    // Debounce buttons
-    for(pin=0; pin<12; pin++)
-    {
-      // Check if the current pin state is different to the stored state and that enough time has passed since last change
-      if((buttonsDirect & buttonsBits[pin]) != (buttons & buttonsBits[pin]) && (millisNow - buttonsMillis[pin]) > DEBOUNCE_TIME)
+      // Debounce buttons
+      for(pin=0; pin<12; pin++)
       {
-        // Toggle the pin, we can safely do this because we know the current state is different to the stored state
-        buttons ^= buttonsBits[pin];
-        // Update the timestamp for the pin
-        buttonsMillis[pin] = millisNow;
+        // Check if the current pin state is different to the stored state and that enough time has passed since last change
+        if((buttonsDirect & buttonsBits[pin]) != (buttons & buttonsBits[pin]) && (millisNow - buttonsMillis[pin]) > DEBOUNCE_TIME)
+        {
+          // Toggle the pin, we can safely do this because we know the current state is different to the stored state
+          buttons ^= buttonsBits[pin];
+          // Update the timestamp for the pin
+          buttonsMillis[pin] = millisNow;
+        }
       }
-    }
-    }
-    else
-    {*/
-
-  for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
-    axes[gp] = axesDirect[gp];
-    buttons_NG[gp] = buttonsDirect[gp];
-
-    //}
-
-    // Has axis inputs changed?
-    if (axes[gp] != axesPrev[gp])
-    {
-      // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
-      if (axes[gp] & B10000000)
-        Gamepad[gp]._GamepadReport.Y = -1;
-      else if (axes[gp] & B01000000)
-        Gamepad[gp]._GamepadReport.Y = 1;
+      }
       else
-        Gamepad[gp]._GamepadReport.Y = 0;
-      // UP + DOWN = NEUTRAL
-      //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
-      // LEFT + RIGHT = NEUTRAL
-      Gamepad[gp]._GamepadReport.X = ((axes[gp] & B00010000) >> 4) - ((axes[gp] & B00100000) >> 5);
-      axesPrev[gp] = axes[gp];
-      usbUpdate = true;
-    }
+      {*/
 
-    /*if(axes2 != axesPrev2)
+    for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
+      axes[gp] = axesDirect[gp];
+      buttons_NG[gp] = buttonsDirect[gp];
+
+      //}
+
+      // Has axis inputs changed?
+      if (axes[gp] != axesPrev[gp])
       {
-      // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
-      if(axes2 & B10000000)
-        Gamepad[1]._GamepadReport.Y = -1;
-      else if(axes2 & B01000000)
-        Gamepad[1]._GamepadReport.Y = 1;
-      else
-        Gamepad[1]._GamepadReport.Y = 0;
-      // UP + DOWN = NEUTRAL
-      //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
-      // LEFT + RIGHT = NEUTRAL
-      Gamepad[1]._GamepadReport.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
-      axesPrev2 = axes2;
-      usbUpdate2 = true;
-      }*/
+        // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
+        if (axes[gp] & B10000000)
+          Gamepad[gp]._GamepadReport.Y = -1;
+        else if (axes[gp] & B01000000)
+          Gamepad[gp]._GamepadReport.Y = 1;
+        else
+          Gamepad[gp]._GamepadReport.Y = 0;
+        // UP + DOWN = NEUTRAL
+        //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+        // LEFT + RIGHT = NEUTRAL
+        Gamepad[gp]._GamepadReport.X = ((axes[gp] & B00010000) >> 4) - ((axes[gp] & B00100000) >> 5);
+        axesPrev[gp] = axes[gp];
+        usbUpdate = true;
+      }
 
-    // Has button inputs changed?
-    if (buttons_NG[gp] != buttonsPrev_NG[gp])
-    {
-      Gamepad[gp]._GamepadReport.buttons = buttons_NG[gp];
-      buttonsPrev_NG[gp] = buttons_NG[gp];
-      usbUpdate = true;
-    }
-
-    /*if(buttons2 != buttonsPrev2)
-      {
-      Gamepad[1]._GamepadReport.buttons = buttons2;
-      buttonsPrev2 = buttons2;
-      usbUpdate2 = true;
-      }*/
-
-    // Should gamepad data be sent to USB?
-    if (usbUpdate)
-    {
-      //if(usbUpdate1){
-      Gamepad[gp].send();
-      usbUpdate = false;
-      /*}
-        if(usbUpdate2){
-        Gamepad[1].send();
-        usbUpdate2 = false;
+      /*if(axes2 != axesPrev2)
+        {
+        // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
+        if(axes2 & B10000000)
+          Gamepad[1]._GamepadReport.Y = -1;
+        else if(axes2 & B01000000)
+          Gamepad[1]._GamepadReport.Y = 1;
+        else
+          Gamepad[1]._GamepadReport.Y = 0;
+        // UP + DOWN = NEUTRAL
+        //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+        // LEFT + RIGHT = NEUTRAL
+        Gamepad[1]._GamepadReport.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
+        axesPrev2 = axes2;
+        usbUpdate2 = true;
         }*/
 
+      // Has button inputs changed?
+      if (buttons_NG[gp] != buttonsPrev_NG[gp])
+      {
+        Gamepad[gp]._GamepadReport.buttons = buttons_NG[gp];
+        buttonsPrev_NG[gp] = buttons_NG[gp];
+        usbUpdate = true;
+      }
+
+      /*if(buttons2 != buttonsPrev2)
+        {
+        Gamepad[1]._GamepadReport.buttons = buttons2;
+        buttonsPrev2 = buttons2;
+        usbUpdate2 = true;
+        }*/
+
+      // Should gamepad data be sent to USB?
+      if (usbUpdate)
+      {
+        //if(usbUpdate1){
+        Gamepad[gp].send();
+        usbUpdate = false;
+        /*}
+          if(usbUpdate2){
+          Gamepad[1].send();
+          usbUpdate2 = false;
+          }*/
+
 #ifdef DEBUG
-      sprintf(buf, "%06lu: %d%d%d%d", millisNow - millisSent, ((axes & 0x10) >> 4), ((axes & 0x20) >> 5), ((axes & 0x40) >> 6), ((axes & 0x80) >> 7) );
-      Serial.print(buf);
-      sprintf(buf, " %d%d%d%d", (buttons_NG & 0x01), ((buttons_NG & 0x02) >> 1), ((buttons_NG & 0x04) >> 2), ((buttons_NG & 0x08) >> 3) );
-      Serial.println(buf);
-      millisSent = millisNow;
+        sprintf(buf, "%06lu: %d%d%d%d", millisNow - millisSent, ((axes & 0x10) >> 4), ((axes & 0x20) >> 5), ((axes & 0x40) >> 6), ((axes & 0x80) >> 7) );
+        Serial.print(buf);
+        sprintf(buf, " %d%d%d%d", (buttons_NG & 0x01), ((buttons_NG & 0x02) >> 1), ((buttons_NG & 0x04) >> 2), ((buttons_NG & 0x08) >> 3) );
+        Serial.println(buf);
+        millisSent = millisNow;
 #endif
+      }
     }
   }
 

@@ -24,6 +24,8 @@
 
 shift_74597 myShifter = shift_74597(QH, SCK, RCK, SLOAD);//, SCLR);
 
+bool gamepad_init = true;
+
 bool usbUpdate = false;     // Should gamepad data be sent to USB?
 bool debounce = DEBOUNCE;   // Debounce?
 uint8_t  pin;               // Used in for loops
@@ -239,67 +241,70 @@ void setup() {
 }
 
 //Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
-  
+
 
 void loop() {
 
-  Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
+    Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
-  if (SISTEMA == GENESIS_)
-  {
-    for (byte gp = 0; gp <= 1; gp++)
-      Gamepad[gp].reset();
-  }
-  else if (SISTEMA == NES || SISTEMA == SNES) {
-    DDRD  |=  B10010000;//B00000011; // output
-    DDRB  |=  B00100000;//B00000011; // output
-    PORTD &= ~B10010000;//~B00000011; // low
-    PORTB &= ~B00100000;//~B00000011; // low
+    if (SISTEMA == GENESIS_)
+    {
+      for (byte gp = 0; gp <= 1; gp++)
+        Gamepad[gp].reset();
+    }
+    else if (SISTEMA == NES || SISTEMA == SNES) {
+      DDRD  |=  B10010000;//B00000011; // output
+      DDRB  |=  B00100000;//B00000011; // output
+      PORTD &= ~B10010000;//~B00000011; // low
+      PORTB &= ~B00100000;//~B00000011; // low
 
-    // Setup data pins (A0-A3 or PF7-PF4) pasan a ser
-    //DDRF  &= ~B11110000; // inputs
-    //PORTF |=  B11110000; // enable internal pull-ups
-    DDRD  &= ~B00000110; // inputs
-    PORTD |=  B00000110; // enable internal pull-ups
-    ////////////////////////GAP
+      // Setup data pins (A0-A3 or PF7-PF4) pasan a ser
+      //DDRF  &= ~B11110000; // inputs
+      //PORTF |=  B11110000; // enable internal pull-ups
+      DDRD  &= ~B00000110; // inputs
+      PORTD |=  B00000110; // enable internal pull-ups
+      ////////////////////////GAP
 
 
 
-    delay(500);
+      delay(500);
 
-    //SNES
-    if (SISTEMA == SNES) detectControllerTypes();
-  }
-  else if (SISTEMA == PCE_) {
-    //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
-    DDRD  &= ~B00011100;
-    DDRB  &= ~B00100000;
-    PORTD |=  B00011100;
-    PORTB |=  B00100000;
+      //SNES
+      if (SISTEMA == SNES) detectControllerTypes();
+    }
+    else if (SISTEMA == PCE_) {
+      //PCE
+      // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
+      DDRD  &= ~B00011100;
+      DDRB  &= ~B00100000;
+      PORTD |=  B00011100;
+      PORTB |=  B00100000;
 
-    // Set B1 and B3 as outputs and set them LOW --> B4 (SEL), D0 (OE)
-    PORTB &= ~B00010000;
-    DDRB  |=  B00010000;
-    PORTD &= ~B00000001;
-    DDRD  |=  B00000001;
+      // Set B1 and B3 as outputs and set them LOW --> B4 (SEL), D0 (OE)
+      PORTB &= ~B00010000;
+      DDRB  |=  B00010000;
+      PORTD &= ~B00000001;
+      DDRD  |=  B00000001;
 
-    // Wait for the controller(s) to settle
-    delay(100);
-  }
-  else if (SISTEMA == NEOGEO_) {
-    // Initialize debouncing timestamps
-    for (pin = 0; pin < 4; pin++)
-      axesMillis[pin] = 0;
-    for (pin = 0; pin < 12; pin++)
-      buttonsMillis[pin] = 0;
+      // Wait for the controller(s) to settle
+      delay(100);
+    }
+    else if (SISTEMA == NEOGEO_) {
+      // Initialize debouncing timestamps
+      for (pin = 0; pin < 4; pin++)
+        axesMillis[pin] = 0;
+      for (pin = 0; pin < 12; pin++)
+        buttonsMillis[pin] = 0;
 
 #ifdef DEBUG
-    Serial.begin(115200);
+      Serial.begin(115200);
 #endif
 
-    myShifter.init();//myPin_mask, &myPin_port);
-  }
+      myShifter.init();//myPin_mask, &myPin_port);
+    }
+
+
+
 
   switch (SISTEMA) {
     case NOT_SELECTED:
@@ -308,7 +313,7 @@ void loop() {
     case SNES_:
       while (1)
       {
-        Serial.println("SNES");
+        //Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -359,7 +364,7 @@ void loop() {
     case NES_:
       while (1)
       {
-        Serial.println("NES");
+        //Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -396,16 +401,13 @@ void loop() {
     case GENESIS_:
       while (1)
       {
-        Serial.println("GENESIS");
+        //Serial.println("GENESIS");
         controllers.readState();
-        Serial.println(controllers.currentState[0]);
-        Serial.println(controllers.currentState[1]);
         /*sendState(0);
           sendState(1);*/
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
-          Serial.println("GENESIS1 - diff");
           Gamepad[gp]._GamepadReport_GENESIS.buttons = controllers.currentState[gp] >> 4;
           Gamepad[gp]._GamepadReport_GENESIS.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
           Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
@@ -417,7 +419,6 @@ void loop() {
         gp = 1;
         if (controllers.currentState[gp] != lastState[gp])
         {
-          Serial.println("GENESIS2 - diff");
           Gamepad[gp]._GamepadReport_GENESIS.buttons = controllers.currentState[gp] >> 4;
           Gamepad[gp]._GamepadReport_GENESIS.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
           Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
@@ -428,9 +429,12 @@ void loop() {
       break;
 
     case NEOGEO_:
+      buttonsDirect[0] = 0;
+      buttonsDirect[1] = 0;
+      
       while (1)
       {
-        Serial.println("NEOGEO");
+        //Serial.println("NEOGEO");
         // Get current time, the millis() function should take about 2µs to complete
         millisNow = millis();
 
@@ -443,12 +447,11 @@ void loop() {
         //{
         // Read axis and button inputs (bitwise NOT results in a 1 when button/axis pressed)
         axesDirect[0] = ~(reverse(myInput0 & B00001111));//~(PINF & B11110000);
-        buttonsDirect[0] = ~((myInput0 & B11110000) >> 4 | (myInput1 & B00001111) << 4 | (B11110000 << 4)); //~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
+        buttonsDirect[0] = ~((myInput0 & B11110000) >> 4 | (myInput1 & B00001111) << 4 | (B11111111 << 8)); //~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
 
         axesDirect[1] = ~((reverse(myInput1 & B11110000)) << 4); //~(PINF & B11110000);
         buttonsDirect[1] = ~((myInput2) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
         
-
         //if(debounce)
         //  {
         //  // Debounce axes
@@ -464,15 +467,15 @@ void loop() {
         //    }
         //  }
 
-          // Debounce buttons
+        // Debounce buttons
         //  for(pin=0; pin<12; pin++)
         //  {
-            // Check if the current pin state is different to the stored state and that enough time has passed since last change
+        // Check if the current pin state is different to the stored state and that enough time has passed since last change
         //    if((buttonsDirect & buttonsBits[pin]) != (buttons & buttonsBits[pin]) && (millisNow - buttonsMillis[pin]) > DEBOUNCE_TIME)
         //    {
-              // Toggle the pin, we can safely do this because we know the current state is different to the stored state
+        // Toggle the pin, we can safely do this because we know the current state is different to the stored state
         //      buttons ^= buttonsBits[pin];
-              // Update the timestamp for the pin
+        // Update the timestamp for the pin
         //      buttonsMillis[pin] = millisNow;
         //    }
         //  }
@@ -481,19 +484,15 @@ void loop() {
         //  {
 
         for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
-          Serial.println("a");
           axes[gp] = axesDirect[gp];
-          Serial.println("ab");
           buttons_NG[gp] = buttonsDirect[gp];
-          Serial.println("c");
           
           //}
 
           // Has axis inputs changed?
           if (axes[gp] != axesPrev[gp])
           {
-            Serial.println("d");
-          
+            
             // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
             if (axes[gp] & B10000000)
               Gamepad[gp]._GamepadReport_NEOGEO.Y = -1;
@@ -511,16 +510,16 @@ void loop() {
 
           //if(axes2 != axesPrev2)
           //  {
-            // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
+          // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
           //  if(axes2 & B10000000)
           //    Gamepad[1]._GamepadReport_NEOGEO.Y = -1;
           //  else if(axes2 & B01000000)
           //    Gamepad[1]._GamepadReport_NEOGEO.Y = 1;
           //  else
           //    Gamepad[1]._GamepadReport_NEOGEO.Y = 0;
-            // UP + DOWN = NEUTRAL
-            //Gamepad._GamepadReport_NEOGEO.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
-            // LEFT + RIGHT = NEUTRAL
+          // UP + DOWN = NEUTRAL
+          //Gamepad._GamepadReport_NEOGEO.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+          // LEFT + RIGHT = NEUTRAL
           //  Gamepad[1]._GamepadReport_NEOGEO.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
           //  axesPrev2 = axes2;
           //  usbUpdate2 = true;
@@ -529,8 +528,7 @@ void loop() {
           // Has button inputs changed?
           if (buttons_NG[gp] != buttonsPrev_NG[gp])
           {
-            Serial.println("e");
-          
+            
             Gamepad[gp]._GamepadReport_NEOGEO.buttons = buttons_NG[gp];
             buttonsPrev_NG[gp] = buttons_NG[gp];
             usbUpdate = true;
@@ -546,10 +544,26 @@ void loop() {
           // Should gamepad data be sent to USB?
           if (usbUpdate)
           {
-            Serial.println("g");
-          
+            
             //if(usbUpdate1){
             Gamepad[gp].send();
+            /*Serial.print("ejes 1 - ");
+            Serial.print(axes[0]);
+            Serial.print(" - directo - ");
+            Serial.println(axesDirect[0]);
+            Serial.print("botones 1 - ");
+            Serial.print(buttons_NG[0]);
+            Serial.print(" - directo - ");
+            Serial.println(buttonsDirect[0]);
+            Serial.print("ejes 2 - ");
+            Serial.print(axes[1]);
+            Serial.print(" - directo - ");
+            Serial.println(axesDirect[1]);
+            Serial.print("botones 2 - ");
+            Serial.print(buttons_NG[1]);
+            Serial.print(" - directo - ");
+            Serial.println(buttonsDirect[1]);*/
+            
             usbUpdate = false;
             //}
             //  if(usbUpdate2){
@@ -572,7 +586,7 @@ void loop() {
     case PCE_:
       while (1)
       {
-        Serial.println("PCE");
+        //Serial.println("PCE");
         // Handle clock for turbo functionality
         microsNow = micros();
         if ((microsNow - microsEnable) >= FRAME_TIME)
@@ -627,7 +641,7 @@ void loop() {
   }
 
 
-//  delay(1000);
+  //  delay(1000);
 }
 
 void sendLatch()
