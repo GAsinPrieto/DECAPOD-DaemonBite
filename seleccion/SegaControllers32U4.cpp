@@ -206,7 +206,6 @@ void SegaControllers32U4::readPort1()
 }
 
 
-//GAP: FUERA
 void SegaControllers32U4::readPort2()
 {
   if(_ignoreCycles[1] <= 0)

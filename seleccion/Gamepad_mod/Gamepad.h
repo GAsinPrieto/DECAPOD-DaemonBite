@@ -48,42 +48,8 @@ typedef struct {
 
   int8_t X;
   int8_t Y;  
-} GamepadReport_SNES;
-
-typedef struct {
-  uint8_t buttons : 4;
-
-  int8_t X;
-  int8_t Y;  
-} GamepadReport_PCE;
-
-typedef struct {
-  uint16_t buttons : 12;
-  
-  int8_t X;
-  int8_t Y;  
-} GamepadReport_NEOGEO;
-
-typedef struct {
-  uint8_t buttons;
-
-  int8_t X;
-  int8_t Y;  
-} GamepadReport_NES;
-
-typedef struct {
-  uint16_t buttons;
-
-  int8_t X;
-  int8_t Y;  
-} GamepadReport_GENESIS;
-
-typedef struct {
-  uint16_t buttons;
-
-  int8_t X;
-  int8_t Y;  
 } GamepadReport;
+
 
 class Gamepad_ : public PluggableUSBModule
 {  
@@ -91,7 +57,7 @@ class Gamepad_ : public PluggableUSBModule
     uint8_t reportId;
 
   protected:
-    int getInterface(uint8_t* interfaceCount);
+    int getInterface(uint8_t* interfaceCount);//, int SYSTEM);
     int getDescriptor(USBSetup& setup);
     uint8_t getShortName(char *name);
     bool setup(USBSetup& setup);
@@ -101,11 +67,6 @@ class Gamepad_ : public PluggableUSBModule
     uint8_t idle;
     
   public:
-    GamepadReport_NES _GamepadReport_NES;
-    GamepadReport_SNES _GamepadReport_SNES;
-    GamepadReport_NEOGEO _GamepadReport_NEOGEO;
-    GamepadReport_GENESIS _GamepadReport_GENESIS;
-    GamepadReport_PCE _GamepadReport_PCE;
     GamepadReport _GamepadReport;
     //Gamepad_(void);
     Gamepad_(int SYSTEM);

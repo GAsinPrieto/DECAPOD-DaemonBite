@@ -10,6 +10,8 @@
 #define PCE_ 4
 #define GENESIS_ 5
 
+
+
 //NEO GEO
 #define QH 2 //PD1 IN
 #define SCK 4 //PD4 OUT
@@ -232,13 +234,6 @@ void setup() {
   pinMode(pinSelect, OUTPUT);
 
 
-  /*else if (SISTEMA == GENESIS_)
-    {
-    for (byte gp = 0; gp <= 1; gp++)
-      Gamepad[gp].reset();
-    }*/
-
-
 
 
 }
@@ -255,7 +250,7 @@ void loop() {
     for (byte gp = 0; gp <= 1; gp++)
       Gamepad[gp].reset();
   }
-  if (SISTEMA == NES || SISTEMA == SNES) {
+  else if (SISTEMA == NES || SISTEMA == SNES) {
     DDRD  |=  B10010000;//B00000011; // output
     DDRB  |=  B00100000;//B00000011; // output
     PORTD &= ~B10010000;//~B00000011; // low
@@ -347,9 +342,9 @@ void loop() {
             // Has any buttons changed state?
             if (buttons[gp] != buttonsPrev[gp])
             {
-              Gamepad[gp]._GamepadReport.buttons = (buttons[gp] >> 4); // First 4 bits are the axes
-              Gamepad[gp]._GamepadReport.Y = ((buttons[gp] & DOWN) >> 1) - (buttons[gp] & UP);
-              Gamepad[gp]._GamepadReport.X = ((buttons[gp] & RIGHT) >> 3) - ((buttons[gp] & LEFT) >> 2);
+              Gamepad[gp]._GamepadReport_SNES.buttons = (buttons[gp] >> 4); // First 4 bits are the axes
+              Gamepad[gp]._GamepadReport_SNES.Y = ((buttons[gp] & DOWN) >> 1) - (buttons[gp] & UP);
+              Gamepad[gp]._GamepadReport_SNES.X = ((buttons[gp] & RIGHT) >> 3) - ((buttons[gp] & LEFT) >> 2);
               buttonsPrev[gp] = buttons[gp];
               Gamepad[gp].send();
             }
@@ -384,9 +379,9 @@ void loop() {
             // Has any buttons changed state?
             if (buttons[gp] != buttonsPrev[gp])
             {
-              Gamepad[gp]._GamepadReport.buttons = (buttons[gp] >> 4); // First 4 bits are the axes
-              Gamepad[gp]._GamepadReport.Y = ((buttons[gp] & DOWN) >> 1) - (buttons[gp] & UP);
-              Gamepad[gp]._GamepadReport.X = ((buttons[gp] & RIGHT) >> 3) - ((buttons[gp] & LEFT) >> 2);
+              Gamepad[gp]._GamepadReport_NES.buttons = (buttons[gp] >> 4); // First 4 bits are the axes
+              Gamepad[gp]._GamepadReport_NES.Y = ((buttons[gp] & DOWN) >> 1) - (buttons[gp] & UP);
+              Gamepad[gp]._GamepadReport_NES.X = ((buttons[gp] & RIGHT) >> 3) - ((buttons[gp] & LEFT) >> 2);
               buttonsPrev[gp] = buttons[gp];
               Gamepad[gp].send();
             }
@@ -403,14 +398,17 @@ void loop() {
       {
         Serial.println("GENESIS");
         controllers.readState();
+        Serial.println(controllers.currentState[0]);
+        Serial.println(controllers.currentState[1]);
         /*sendState(0);
           sendState(1);*/
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
-          Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
-          Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
-          Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+          Serial.println("GENESIS1 - diff");
+          Gamepad[gp]._GamepadReport_GENESIS.buttons = controllers.currentState[gp] >> 4;
+          Gamepad[gp]._GamepadReport_GENESIS.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+          Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
           Gamepad[gp].send();
           lastState[gp] = controllers.currentState[gp];
         }
@@ -419,9 +417,10 @@ void loop() {
         gp = 1;
         if (controllers.currentState[gp] != lastState[gp])
         {
-          Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
-          Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
-          Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+          Serial.println("GENESIS2 - diff");
+          Gamepad[gp]._GamepadReport_GENESIS.buttons = controllers.currentState[gp] >> 4;
+          Gamepad[gp]._GamepadReport_GENESIS.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+          Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
           Gamepad[gp].send();
           lastState[gp] = controllers.currentState[gp];
         }
@@ -429,8 +428,8 @@ void loop() {
       break;
 
     case NEOGEO_:
-      //while (1)
-      //{
+      while (1)
+      {
         Serial.println("NEOGEO");
         // Get current time, the millis() function should take about 2µs to complete
         millisNow = millis();
@@ -450,36 +449,36 @@ void loop() {
         buttonsDirect[1] = ~((myInput2) | (B11110000 << 4));//~((PIND & B00011111) | ((PIND & B10000000) << 4) | ((PINB & B01111110) << 4));
         
 
-        /*if(debounce)
-          {
-          // Debounce axes
-          for(pin=0; pin<4; pin++)
-          {
-            // Check if the current pin state is different to the stored state and that enough time has passed since last change
-            if((axesDirect & axesBits[pin]) != (axes & axesBits[pin]) && (millisNow - axesMillis[pin]) > DEBOUNCE_TIME)
-            {
-              // Toggle the pin, we can safely do this because we know the current state is different to the stored state
-              axes ^= axesBits[pin];
-              // Update the timestamp for the pin
-              axesMillis[pin] = millisNow;
-            }
-          }
+        //if(debounce)
+        //  {
+        //  // Debounce axes
+        //  for(pin=0; pin<4; pin++)
+        //  {
+        //    // Check if the current pin state is different to the stored state and that enough time has passed since last change
+        //    if((axesDirect & axesBits[pin]) != (axes & axesBits[pin]) && (millisNow - axesMillis[pin]) > DEBOUNCE_TIME)
+        //    {
+        //      // Toggle the pin, we can safely do this because we know the current state is different to the stored state
+        //      axes ^= axesBits[pin];
+        //      // Update the timestamp for the pin
+        //      axesMillis[pin] = millisNow;
+        //    }
+        //  }
 
           // Debounce buttons
-          for(pin=0; pin<12; pin++)
-          {
+        //  for(pin=0; pin<12; pin++)
+        //  {
             // Check if the current pin state is different to the stored state and that enough time has passed since last change
-            if((buttonsDirect & buttonsBits[pin]) != (buttons & buttonsBits[pin]) && (millisNow - buttonsMillis[pin]) > DEBOUNCE_TIME)
-            {
+        //    if((buttonsDirect & buttonsBits[pin]) != (buttons & buttonsBits[pin]) && (millisNow - buttonsMillis[pin]) > DEBOUNCE_TIME)
+        //    {
               // Toggle the pin, we can safely do this because we know the current state is different to the stored state
-              buttons ^= buttonsBits[pin];
+        //      buttons ^= buttonsBits[pin];
               // Update the timestamp for the pin
-              buttonsMillis[pin] = millisNow;
-            }
-          }
-          }
-          else
-          {*/
+        //      buttonsMillis[pin] = millisNow;
+        //    }
+        //  }
+        //  }
+        //  else
+        //  {
 
         for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
           Serial.println("a");
@@ -497,52 +496,52 @@ void loop() {
           
             // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
             if (axes[gp] & B10000000)
-              Gamepad[gp]._GamepadReport.Y = -1;
+              Gamepad[gp]._GamepadReport_NEOGEO.Y = -1;
             else if (axes[gp] & B01000000)
-              Gamepad[gp]._GamepadReport.Y = 1;
+              Gamepad[gp]._GamepadReport_NEOGEO.Y = 1;
             else
-              Gamepad[gp]._GamepadReport.Y = 0;
+              Gamepad[gp]._GamepadReport_NEOGEO.Y = 0;
             // UP + DOWN = NEUTRAL
-            //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+            //Gamepad._GamepadReport_NEOGEO.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
             // LEFT + RIGHT = NEUTRAL
-            Gamepad[gp]._GamepadReport.X = ((axes[gp] & B00010000) >> 4) - ((axes[gp] & B00100000) >> 5);
+            Gamepad[gp]._GamepadReport_NEOGEO.X = ((axes[gp] & B00010000) >> 4) - ((axes[gp] & B00100000) >> 5);
             axesPrev[gp] = axes[gp];
             usbUpdate = true;
           }
 
-          /*if(axes2 != axesPrev2)
-            {
+          //if(axes2 != axesPrev2)
+          //  {
             // UP + DOWN = UP, SOCD (Simultaneous Opposite Cardinal Directions) Cleaner
-            if(axes2 & B10000000)
-              Gamepad[1]._GamepadReport.Y = -1;
-            else if(axes2 & B01000000)
-              Gamepad[1]._GamepadReport.Y = 1;
-            else
-              Gamepad[1]._GamepadReport.Y = 0;
+          //  if(axes2 & B10000000)
+          //    Gamepad[1]._GamepadReport_NEOGEO.Y = -1;
+          //  else if(axes2 & B01000000)
+          //    Gamepad[1]._GamepadReport_NEOGEO.Y = 1;
+          //  else
+          //    Gamepad[1]._GamepadReport_NEOGEO.Y = 0;
             // UP + DOWN = NEUTRAL
-            //Gamepad._GamepadReport.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
+            //Gamepad._GamepadReport_NEOGEO.Y = ((axes & B01000000)>>6) - ((axes & B10000000)>>7);
             // LEFT + RIGHT = NEUTRAL
-            Gamepad[1]._GamepadReport.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
-            axesPrev2 = axes2;
-            usbUpdate2 = true;
-            }*/
+          //  Gamepad[1]._GamepadReport_NEOGEO.X = ((axes2 & B00010000)>>4) - ((axes2 & B00100000)>>5);
+          //  axesPrev2 = axes2;
+          //  usbUpdate2 = true;
+          //  }
 
           // Has button inputs changed?
           if (buttons_NG[gp] != buttonsPrev_NG[gp])
           {
             Serial.println("e");
           
-            Gamepad[gp]._GamepadReport.buttons = buttons_NG[gp];
+            Gamepad[gp]._GamepadReport_NEOGEO.buttons = buttons_NG[gp];
             buttonsPrev_NG[gp] = buttons_NG[gp];
             usbUpdate = true;
           }
 
-          /*if(buttons2 != buttonsPrev2)
-            {
-            Gamepad[1]._GamepadReport.buttons = buttons2;
-            buttonsPrev2 = buttons2;
-            usbUpdate2 = true;
-            }*/
+          ///if(buttons2 != buttonsPrev2)
+          //  {
+          //  Gamepad[1]._GamepadReport_NEOGEO.buttons = buttons2;
+          //  buttonsPrev2 = buttons2;
+          //  usbUpdate2 = true;
+          //  }
 
           // Should gamepad data be sent to USB?
           if (usbUpdate)
@@ -552,11 +551,11 @@ void loop() {
             //if(usbUpdate1){
             Gamepad[gp].send();
             usbUpdate = false;
-            /*}
-              if(usbUpdate2){
-              Gamepad[1].send();
-              usbUpdate2 = false;
-              }*/
+            //}
+            //  if(usbUpdate2){
+            //  Gamepad[1].send();
+            //  usbUpdate2 = false;
+            //  }
 
 #ifdef DEBUG
             sprintf(buf, "%06lu: %d%d%d%d", millisNow - millisSent, ((axes & 0x10) >> 4), ((axes & 0x20) >> 5), ((axes & 0x40) >> 6), ((axes & 0x80) >> 7) );
@@ -567,7 +566,7 @@ void loop() {
 #endif
           }
         }
-      //}
+      }
       break;
 
     case PCE_:
@@ -610,9 +609,9 @@ void loop() {
           // Has any buttons changed state?
           if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
           {
-            Gamepad[gp]._GamepadReport.buttons = buttons_PCE[gp][1];
-            Gamepad[gp]._GamepadReport.Y = ((buttons_PCE[gp][0] & DOWN) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
-            Gamepad[gp]._GamepadReport.X = ((buttons_PCE[gp][0] & RIGHT) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT) >> LEFT_SH);
+            Gamepad[gp]._GamepadReport_PCE.buttons = buttons_PCE[gp][1];
+            Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
+            Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT) >> LEFT_SH);
             buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
             buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
             Gamepad[gp].send();
@@ -628,9 +627,8 @@ void loop() {
   }
 
 
-  //delay(1000);
+//  delay(1000);
 }
-
 
 void sendLatch()
 {
@@ -700,17 +698,3 @@ void detectControllerTypes()
   // Set updated button count to avoid unneccesary button reads (for simpler controller types)
   buttonCount = buttonCountNew;
 }
-/*
-  //GENESIS
-  void sendState(byte gp)
-  {
-  // Only report controller state if it has changed
-  if (controllers.currentState[gp] != lastState[gp])
-  {
-    Gamepad[gp]._GamepadReport.buttons = controllers.currentState[gp] >> 4;
-    Gamepad[gp]._GamepadReport.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
-    Gamepad[gp]._GamepadReport.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
-    Gamepad[gp].send();
-    lastState[gp] = controllers.currentState[gp];
-  }
-  }*/
