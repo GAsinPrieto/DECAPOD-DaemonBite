@@ -89,6 +89,10 @@ static const uint8_t _hidReportDescriptorSNES[] PROGMEM = {
       0x75, 0x01,                       // REPORT_SIZE (1)
       0x81, 0x02,                       // INPUT (Data,Var,Abs)
 
+      0x95, 0x01,                       // REPORT_COUNT (1) ; pad out the bits into a number divisible by 8
+      0x75, 0x18,                       // REPORT_SIZE (24)
+      0x81, 0x03,                       // INPUT (Const,Var,Abs)
+    
       0x05, 0x01,                       // USAGE_PAGE (Generic Desktop)
       0x09, 0x01,                       // USAGE (pointer)
       0xa1, 0x00,                       // COLLECTION (Physical) 
@@ -332,8 +336,8 @@ int Gamepad_::getDescriptor(USBSetup& setup)
     return USB_SendControl(TRANSFER_PGM, _hidReportDescriptorNG, sizeof(_hidReportDescriptorNG));
   else if (SISTEMAgp == PCE)
     return USB_SendControl(TRANSFER_PGM, _hidReportDescriptorPCE, sizeof(_hidReportDescriptorPCE));
-  else
-    return USB_SendControl(TRANSFER_PGM, _hidReportDescriptor, sizeof(_hidReportDescriptor));  
+  /*else
+    return USB_SendControl(TRANSFER_PGM, _hidReportDescriptor, sizeof(_hidReportDescriptor));  */
 }
 
 bool Gamepad_::setup(USBSetup& setup)
@@ -415,7 +419,6 @@ void Gamepad_::reset()
 
 void Gamepad_::send() 
 {
-  USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport, sizeof(GamepadReport));
   if (SISTEMAgp == SNES)
   {
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_SNES, sizeof(GamepadReport_SNES));

@@ -1,6 +1,6 @@
 #include "Gamepad.h"
-//#include "SegaControllers32U4.h"
-//#include "shift_74597.h"
+#include "SegaControllers32U4.h"
+#include "shift_74597.h"
 
 
 #define NOT_SELECTED 0
@@ -11,7 +11,7 @@
 #define GENESIS_ 5
 
 
-/*
+
 //NEO GEO
 #define QH 2 //PD1 IN
 #define SCK 4 //PD4 OUT
@@ -89,7 +89,7 @@ uint8_t reverse(uint8_t in)
 #define RIGHT_SH 1
 
 
-*/
+
 
 
 //NES
@@ -121,13 +121,13 @@ enum ControllerType {
   SNES,
   NTT
 };
-/*
+
 //GENESIS
 SegaControllers32U4 controllers;
 
 // Controller previous states
 word lastState[2] = {1, 1};
-*/
+
 
 
 
@@ -156,7 +156,7 @@ uint8_t buttonCount = 32;
 
 uint8_t btnBits_NES[BUTTON_COUNT] = {0x20, 0x10, 0x40, 0x80, UP, DOWN, LEFT, RIGHT};
 
-/*
+
 //PCE
 // Controllers
 uint8_t buttons_PCE[2][2]     = {{0, 0}, {0, 0}};
@@ -168,7 +168,7 @@ uint32_t microsEnable = 0;
 
 
 
-*/
+
 
 
 uint8_t gp = 0;
@@ -240,19 +240,16 @@ void setup() {
 
 }
 
-//Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
-
-
 void loop() {
 
     Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
-    /*if (SISTEMA == GENESIS_)
+    if (SISTEMA == GENESIS_)
     {
       for (byte gp = 0; gp <= 1; gp++)
         Gamepad[gp].reset();
     }
-    else */if (SISTEMA == NES || SISTEMA == SNES) {
+    else if (SISTEMA == NES || SISTEMA == SNES) {
       DDRD  |=  B10010000;//B00000011; // output
       DDRB  |=  B00100000;//B00000011; // output
       PORTD &= ~B10010000;//~B00000011; // low
@@ -272,7 +269,7 @@ void loop() {
       //SNES
       if (SISTEMA == SNES) detectControllerTypes();
     }
-    /*else if (SISTEMA == PCE_) {
+    else if (SISTEMA == PCE_) {
       //PCE
       // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
       DDRD  &= ~B00011100;
@@ -302,9 +299,6 @@ void loop() {
 
       myShifter.init();//myPin_mask, &myPin_port);
     }
-
-*/
-
 
   switch (SISTEMA) {
     case NOT_SELECTED:
@@ -397,10 +391,10 @@ void loop() {
 
       break;
 
-  /*  case GENESIS_:
+    case GENESIS_:
       while (1)
       {
-        //Serial.println("GENESIS");
+        Serial.println("GENESIS");
         controllers.readState();
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
@@ -431,7 +425,7 @@ void loop() {
       
       while (1)
       {
-        //Serial.println("NEOGEO");
+        Serial.println("NEOGEO");
         // Get current time, the millis() function should take about 2µs to complete
         millisNow = millis();
 
@@ -568,7 +562,7 @@ void loop() {
     case PCE_:
       while (1)
       {
-        //Serial.println("PCE");
+        Serial.println("PCE");
         // Handle clock for turbo functionality
         microsNow = micros();
         if ((microsNow - microsEnable) >= FRAME_TIME)
@@ -617,13 +611,13 @@ void loop() {
       }
 
 
-      break;*/
+      break;
 
 
   }
 
 
-  //  delay(1000);
+    delay(10);
 }
 
 void sendLatch()
