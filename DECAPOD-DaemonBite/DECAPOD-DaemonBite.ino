@@ -94,6 +94,7 @@ uint8_t reverse(uint8_t in)
 
 //NES
 #define GAMEPAD_COUNT 2      // NOTE: No more than TWO gamepads are possible at the moment due to a USB HID issue.
+#define GAMEPAD_COUNT_NES 2      // NOTE: No more than TWO gamepads are possible at the moment due to a USB HID issue.
 #define GAMEPAD_COUNT_MAX 4  // NOTE: For some reason, can't have more than two gamepads without serial breaking. Can someone figure out why?
 //       (It has something to do with how Arduino handles HID devices)
 #define BUTTON_COUNT       8 // Standard NES controller has four buttons and four axes, totalling 8
@@ -101,11 +102,6 @@ uint8_t reverse(uint8_t in)
 #define MICROS_LATCH_NES       8 // 12µs according to specs (8 seems to work fine)
 #define MICROS_CLOCK_NES       4 //  6µs according to specs (4 seems to work fine)
 #define MICROS_PAUSE_NES       4 //  6µs according to specs (4 seems to work fine)
-
-#define UP    0x01
-#define DOWN  0x02
-#define LEFT  0x04
-#define RIGHT 0x08
 
 // Set up USB HID gamepads
 //Gamepad_ Gamepad[GAMEPAD_COUNT];
@@ -142,7 +138,7 @@ word lastState[2] = {1, 1};
 uint8_t buttons[GAMEPAD_COUNT_MAX] = {0, 0, 0, 0};
 uint8_t buttonsPrev[GAMEPAD_COUNT_MAX] = {0, 0, 0, 0};
 //uint8_t gpBit[GAMEPAD_COUNT_MAX] = {B10000000,B01000000,B00100000,B00010000};
-uint8_t gpBit[GAMEPAD_COUNT_MAX] = {B00000010, B00000100, B10000000, B0100000};
+uint8_t gpBit[GAMEPAD_COUNT_MAX] = {B00000010, B00000100, B00001000, B00010000};
 
 
 //SNES
@@ -237,19 +233,22 @@ void setup() {
 
 
 
-
 }
 
 void loop() {
 
-    Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
-
+    int gamepad_number;
+    if (SISTEMA == NES_) gamepad_number = GAMEPAD_COUNT_NES;
+    else gamepad_number = GAMEPAD_COUNT;
+    
+    Gamepad_ Gamepad[gamepad_number](SISTEMA);
+    
     if (SISTEMA == GENESIS_)
     {
       for (byte gp = 0; gp <= 1; gp++)
         Gamepad[gp].reset();
     }
-    else if (SISTEMA == NES || SISTEMA == SNES) {
+    else if (SISTEMA == NES_ || SISTEMA == SNES_) {
       DDRD  |=  B10010000;//B00000011; // output
       DDRB  |=  B00100000;//B00000011; // output
       PORTD &= ~B10010000;//~B00000011; // low
@@ -267,7 +266,7 @@ void loop() {
       delay(500);
 
       //SNES
-      if (SISTEMA == SNES) detectControllerTypes();
+      if (SISTEMA == SNES_) detectControllerTypes();
     }
     else if (SISTEMA == PCE_) {
       //PCE
@@ -307,7 +306,7 @@ void loop() {
     case SNES_:
       while (1)
       {
-        Serial.println("SNES");
+        //Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -318,17 +317,28 @@ void loop() {
           {
             for (gp = 0; gp < GAMEPAD_COUNT; gp++)
               //(PINF & gpBit[gp]) ? buttons[gp] &= ~btnBits[btn] : buttons[gp] |= btnBits[btn];
-              (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_SNES[btn] : buttons[gp] |= btnBits_SNES[btn];
+              /*if (controllerType[gp] == NES) {
+                (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_NES[btn] : buttons[gp] |= btnBits_NES[btn];
+              }
+              else{*/
+                (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_SNES[btn] : buttons[gp] |= btnBits_SNES[btn];
+              /*}*/
             sendClock();
           }
-
+          /*Serial.print("buttons 0 - ");
+          Serial.print(buttons[0]);
+          Serial.print("buttons 1 - ");
+          Serial.println(buttons[1]);*/
+          
           // Check gamepad type
+          
           for (gp = 0; gp < GAMEPAD_COUNT; gp++)
           {
             if (controllerType[gp] == NES) {   // NES
               bitWrite(buttons[gp], 5, bitRead(buttons[gp], 4));
               bitWrite(buttons[gp], 4, bitRead(buttons[gp], 6));
               buttons[gp] &= 0xC3F;
+              //Serial.println(buttons[gp]);
             }
             else if (controllerType[gp] == NTT) // SNES NTT Data Keypad
               buttons[gp] &= 0x3FFFFFF;
@@ -366,13 +376,17 @@ void loop() {
           sendLatch();
           for (uint8_t btn = 0; btn < BUTTON_COUNT; btn++)
           {
-            for (gp = 0; gp < GAMEPAD_COUNT; gp++)
+            for (gp = 0; gp < GAMEPAD_COUNT_NES; gp++)
               //(PINF & gpBit[gp]) ? buttons[gp] &= ~btnBits[btn] : buttons[gp] |= btnBits[btn];
               (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_NES[btn] : buttons[gp] |= btnBits_NES[btn];
             sendClock();
           }
-
-          for (gp = 0; gp < GAMEPAD_COUNT; gp++)
+          /*Serial.print("buttons 0 - ");
+          Serial.print(buttons[0]);
+          Serial.print("buttons 1 - ");
+          Serial.println(buttons[1]);*/
+          
+          for (gp = 0; gp < GAMEPAD_COUNT_NES; gp++)
           {
             // Has any buttons changed state?
             if (buttons[gp] != buttonsPrev[gp])
@@ -388,6 +402,7 @@ void loop() {
           microsButtons = micros();
         }
       }
+      
 
       break;
 
@@ -653,7 +668,7 @@ void detectControllerTypes()
   {
     // Pulse latch
     sendLatch();
-
+    
     // Read all buttons
     for (uint8_t btn = 0; btn < buttonCount; btn++)
     {
@@ -684,7 +699,7 @@ void detectControllerTypes()
       }
     }
   }
-
+  
   // Set updated button count to avoid unneccesary button reads (for simpler controller types)
   buttonCount = buttonCountNew;
 }
