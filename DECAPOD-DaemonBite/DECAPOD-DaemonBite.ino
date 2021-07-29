@@ -111,6 +111,11 @@ uint8_t reverse(uint8_t in)
 #define MICROS_CLOCK_SNES       5 //  6µs according to specs (4 seems to work fine)
 #define MICROS_PAUSE_SNES       5 //  6µs according to specs (4 seems to work fine)
 
+#define CYCLES_LATCH     128 // 12µs according to specs (8 seems to work fine) (1 cycle @ 16MHz takes 62.5ns so 62.5ns * 128 = 8000ns = 8µs)
+#define CYCLES_CLOCK      64 //  6µs according to specs (4 seems to work fine)
+#define CYCLES_PAUSE      64 //  6µs according to specs (4 seems to work fine)
+
+
 enum ControllerType {
   NONE,
   NES,
@@ -134,6 +139,8 @@ word lastState[2] = {1, 1};
 
 #define NTT_CONTROL_BIT 0x20000000
 
+#define DELAY_CYCLES(n) __builtin_avr_delay_cycles(n)
+
 // Controllers
 uint8_t buttons[GAMEPAD_COUNT_MAX] = {0, 0, 0, 0};
 uint8_t buttonsPrev[GAMEPAD_COUNT_MAX] = {0, 0, 0, 0};
@@ -142,7 +149,9 @@ uint8_t gpBit[GAMEPAD_COUNT_MAX] = {B00000010, B00000100, B00001000, B00010000};
 
 
 //SNES
-ControllerType controllerType[GAMEPAD_COUNT_MAX] = {NONE, NONE};
+uint32_t buttons_SNES[GAMEPAD_COUNT_MAX] = {0,0,0,0};
+uint32_t buttonsPrev_SNES[GAMEPAD_COUNT_MAX] = {0,0,0,0};
+ControllerType controllerType[GAMEPAD_COUNT_MAX] = {NONE,NONE,NONE,NONE};
 uint32_t btnBits_SNES[32] = {0x10, 0x40, 0x400, 0x800, UP, DOWN, LEFT, RIGHT, 0x20, 0x80, 0x100, 0x200, // Standard SNES controller
                              0x10000000, 0x20000000, 0x40000000, 0x80000000, 0x1000, 0x2000, 0x4000, 0x8000, // NTT Data Keypad (NDK10)
                              0x10000, 0x20000, 0x40000, 0x80000, 0x100000, 0x200000, 0x400000, 0x800000,
@@ -309,8 +318,7 @@ void loop() {
         //Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
-        {
-          // Pulse latch
+        {          // Pulse latch
           sendLatch();
 
           for (uint8_t btn = 0; btn < buttonCount; btn++)
@@ -321,40 +329,36 @@ void loop() {
                 (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_NES[btn] : buttons[gp] |= btnBits_NES[btn];
               }
               else{*/
-                (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_SNES[btn] : buttons[gp] |= btnBits_SNES[btn];
+                (PIND & gpBit[gp]) ? buttons_SNES[gp] &= ~btnBits_SNES[btn] : buttons_SNES[gp] |= btnBits_SNES[btn];
               /*}*/
             sendClock();
           }
-          /*Serial.print("buttons 0 - ");
-          Serial.print(buttons[0]);
-          Serial.print("buttons 1 - ");
-          Serial.println(buttons[1]);*/
           
           // Check gamepad type
           
           for (gp = 0; gp < GAMEPAD_COUNT; gp++)
           {
             if (controllerType[gp] == NES) {   // NES
-              bitWrite(buttons[gp], 5, bitRead(buttons[gp], 4));
-              bitWrite(buttons[gp], 4, bitRead(buttons[gp], 6));
-              buttons[gp] &= 0xC3F;
-              //Serial.println(buttons[gp]);
+              bitWrite(buttons_SNES[gp], 5, bitRead(buttons_SNES[gp], 4));
+              bitWrite(buttons_SNES[gp], 4, bitRead(buttons_SNES[gp], 6));
+              buttons_SNES[gp] &= 0xC3F;
+              //Serial.println(buttons_SNES[gp]);
             }
             else if (controllerType[gp] == NTT) // SNES NTT Data Keypad
-              buttons[gp] &= 0x3FFFFFF;
+              buttons_SNES[gp] &= 0x3FFFFFF;
             else                               // SNES Gamepad
-              buttons[gp] &= 0xFFF;
+              buttons_SNES[gp] &= 0xFFF;
           }
 
           for (gp = 0; gp < GAMEPAD_COUNT; gp++)
           {
             // Has any buttons changed state?
-            if (buttons[gp] != buttonsPrev[gp])
+            if (buttons_SNES[gp] != buttonsPrev_SNES[gp])
             {
-              Gamepad[gp]._GamepadReport_SNES.buttons = (buttons[gp] >> 4); // First 4 bits are the axes
-              Gamepad[gp]._GamepadReport_SNES.Y = ((buttons[gp] & DOWN) >> 1) - (buttons[gp] & UP);
-              Gamepad[gp]._GamepadReport_SNES.X = ((buttons[gp] & RIGHT) >> 3) - ((buttons[gp] & LEFT) >> 2);
-              buttonsPrev[gp] = buttons[gp];
+              Gamepad[gp]._GamepadReport_SNES.buttons = (buttons_SNES[gp] >> 4); // First 4 bits are the axes
+              Gamepad[gp]._GamepadReport_SNES.Y = ((buttons_SNES[gp] & DOWN) >> 1) - (buttons_SNES[gp] & UP);
+              Gamepad[gp]._GamepadReport_SNES.X = ((buttons_SNES[gp] & RIGHT) >> 3) - ((buttons_SNES[gp] & LEFT) >> 2);
+              buttonsPrev_SNES[gp] = buttons_SNES[gp];
               Gamepad[gp].send();
             }
           }
@@ -640,10 +644,10 @@ void sendLatch()
   // Send a latch pulse to the NES controller(s)
   PORTB |=  B00100000; // Set HIGH
   if (SISTEMA == NES) delayMicroseconds(MICROS_LATCH_NES);
-  else if (SISTEMA == SNES) delayMicroseconds(MICROS_LATCH_SNES);
+  else if (SISTEMA == SNES) DELAY_CYCLES(CYCLES_LATCH);
   PORTB &= ~B00100000; // Set LOW
   if (SISTEMA == NES) delayMicroseconds(MICROS_PAUSE_NES);
-  if (SISTEMA == SNES) delayMicroseconds(MICROS_PAUSE_SNES);
+  if (SISTEMA == SNES) DELAY_CYCLES(CYCLES_PAUSE);
 }
 
 void sendClock()
@@ -651,10 +655,10 @@ void sendClock()
   // Send a clock pulse to the NES controller(s)
   PORTD |=  B10010000; // Set HIGH
   if (SISTEMA == NES) delayMicroseconds(MICROS_CLOCK_NES);
-  if (SISTEMA == SNES) delayMicroseconds(MICROS_CLOCK_SNES);
+  if (SISTEMA == SNES) DELAY_CYCLES(CYCLES_CLOCK); 
   PORTD &= ~B10010000; // Set LOW
   if (SISTEMA == NES) delayMicroseconds(MICROS_PAUSE_NES);
-  if (SISTEMA == SNES) delayMicroseconds(MICROS_PAUSE_SNES);
+  if (SISTEMA == SNES) DELAY_CYCLES(CYCLES_PAUSE);
 }
 
 
@@ -664,7 +668,7 @@ void detectControllerTypes()
   uint8_t buttonCountNew = 0;
 
   // Read the controllers a few times to detect controller type
-  for (uint8_t i = 0; i < 4; i++)
+  for (uint8_t i = 0; i < 40; i++)
   {
     // Pulse latch
     sendLatch();
@@ -674,20 +678,20 @@ void detectControllerTypes()
     {
       for (gp = 0; gp < GAMEPAD_COUNT; gp++)
         //(PINF & gpBit[gp]) ? buttons[gp] &= ~btnBits[btn] : buttons[gp] |= btnBits[btn];
-        (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_SNES[btn] : buttons[gp] |= btnBits_SNES[btn];
+        (PIND & gpBit[gp]) ? buttons_SNES[gp] &= ~btnBits_SNES[btn] : buttons_SNES[gp] |= btnBits_SNES[btn];
       sendClock();
     }
 
     // Check controller types and set buttonCount to max needed
     for (gp = 0; gp < GAMEPAD_COUNT; gp++)
     {
-      if ((buttons[gp] & 0xF3A0) == 0xF3A0) {  // NES
+      if ((buttons_SNES[gp] & 0xF3A0) == 0xF3A0) {  // NES
         if (controllerType[gp] != SNES && controllerType[gp] != NTT)
           controllerType[gp] = NES;
         if (buttonCountNew < 8)
           buttonCountNew = 8;
       }
-      else if (buttons[gp] & NTT_CONTROL_BIT) { // SNES NTT Data Keypad
+      else if (buttons_SNES[gp] & NTT_CONTROL_BIT) { // SNES NTT Data Keypad
         controllerType[gp] = NTT;
         buttonCountNew = 32;
       }
@@ -702,4 +706,5 @@ void detectControllerTypes()
   
   // Set updated button count to avoid unneccesary button reads (for simpler controller types)
   buttonCount = buttonCountNew;
+
 }

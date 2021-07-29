@@ -35,7 +35,7 @@
 int SISTEMAgp = NOT_SELECTED;
 
 //GENERIC
-static const uint8_t _hidReportDescriptor[] PROGMEM = {
+/*static const uint8_t _hidReportDescriptor[] PROGMEM = {
   0x05, 0x01,                       // USAGE_PAGE (Generic Desktop)
   0x09, 0x04,                       // USAGE (Joystick) (Maybe change to gamepad? I don't think so but...)
   0xa1, 0x01,                       // COLLECTION (Application)
@@ -68,7 +68,7 @@ static const uint8_t _hidReportDescriptor[] PROGMEM = {
 
     0xc0,                             // END_COLLECTION
   0xc0,                             // END_COLLECTION 
-};
+};*/
 
 
 
@@ -89,10 +89,10 @@ static const uint8_t _hidReportDescriptorSNES[] PROGMEM = {
       0x75, 0x01,                       // REPORT_SIZE (1)
       0x81, 0x02,                       // INPUT (Data,Var,Abs)
 
-      0x95, 0x01,                       // REPORT_COUNT (1) ; pad out the bits into a number divisible by 8
+/*      0x95, 0x01,                       // REPORT_COUNT (1) ; pad out the bits into a number divisible by 8
       0x75, 0x18,                       // REPORT_SIZE (24)
       0x81, 0x03,                       // INPUT (Const,Var,Abs)
-    
+  */  
       0x05, 0x01,                       // USAGE_PAGE (Generic Desktop)
       0x09, 0x01,                       // USAGE (pointer)
       0xa1, 0x00,                       // COLLECTION (Physical) 
@@ -264,12 +264,6 @@ Gamepad_::Gamepad_(int SYSTEM) : PluggableUSBModule(1, 1, epType), protocol(HID_
 int Gamepad_::getInterface(uint8_t* interfaceCount)
 {
   *interfaceCount += 1; // uses 1
-  HIDDescriptor hidInterface = {
-      D_INTERFACE(pluggedInterface, 1, USB_DEVICE_CLASS_HUMAN_INTERFACE, HID_SUBCLASS_NONE, HID_PROTOCOL_NONE),
-      D_HIDREPORT(sizeof(_hidReportDescriptor)),
-      D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
-  };
-  
   if (SISTEMAgp == GENESIS)
   {
     HIDDescriptor hidInterface = {
@@ -277,6 +271,7 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
       D_HIDREPORT(sizeof(_hidReportDescriptorGEN)),
       D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
     };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
   else if (SISTEMAgp == NES)
   {
@@ -285,6 +280,7 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
       D_HIDREPORT(sizeof(_hidReportDescriptorNES)),
       D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
     };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
   else if (SISTEMAgp == SNES)
   {
@@ -293,6 +289,7 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
       D_HIDREPORT(sizeof(_hidReportDescriptorSNES)),
       D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
     };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
   else if (SISTEMAgp == PCE)
   {
@@ -301,6 +298,7 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
       D_HIDREPORT(sizeof(_hidReportDescriptorPCE)),
       D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
     };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
   else if (SISTEMAgp == NEOGEO)
   {
@@ -309,8 +307,9 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
       D_HIDREPORT(sizeof(_hidReportDescriptorNG)),
       D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
     };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
-  return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
+  
 }
 
 int Gamepad_::getDescriptor(USBSetup& setup)
@@ -419,10 +418,10 @@ void Gamepad_::reset()
 
 void Gamepad_::send() 
 {
-  if (SISTEMAgp == SNES)
-  {
+  /*if (SISTEMAgp == SNES)
+  {*/
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_SNES, sizeof(GamepadReport_SNES));
-  }
+  /*}
   if (SISTEMAgp == NES)
   {
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_NES, sizeof(GamepadReport_NES));
@@ -438,7 +437,7 @@ void Gamepad_::send()
   if (SISTEMAgp == NEOGEO)
   {
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_NEOGEO, sizeof(GamepadReport_NEOGEO));
-  }
+  }*/
 }
 
 uint8_t Gamepad_::getShortName(char *name)
