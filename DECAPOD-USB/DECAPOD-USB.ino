@@ -310,7 +310,7 @@ void loop() {
     case SNES_:
       while (1)
       {
-        //Serial.println("SNES");
+        Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {          // Pulse latch
@@ -367,7 +367,7 @@ void loop() {
     case NES_:
       while (1)
       {
-        //Serial.println("NES");
+        Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
