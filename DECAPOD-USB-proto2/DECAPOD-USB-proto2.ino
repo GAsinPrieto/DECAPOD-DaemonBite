@@ -201,9 +201,20 @@ int outputValueNEOGEO = 0;        // value output to the PWM (analog out)
 int outputValueGENESIS = 0;        // value output to the PWM (analog out)
 int SISTEMA = 0;
 
+bool SerialNotInit = false;
+
 const char *gp_serial = "DECAPOD";
 
 void setup() {
+
+  Serial.begin(57600);
+
+
+  if(!Serial){
+    SerialNotInit=true;
+  }
+  
+   
   pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
   pinMode(pinNEOGEO, OUTPUT);
@@ -211,21 +222,21 @@ void setup() {
   //pinMode(pinSelect, INPUT);
   DDRD  &= ~B00100000; // inputs
   PORTD |=  B00100000; // enable internal pull-ups
-    
+
   analogWrite(pinSNES, 255);
-  if ((PIND & B00100000)>>5 == 1) SISTEMA = SNES_; //Serial.println("SNES");
+  if ((PIND & B00100000) >> 5 == 1) SISTEMA = SNES_; //Serial.println("SNES");
   else {
     analogWrite(pinSNES, 0);
     analogWrite(pinNES, 255);
-    if ((PIND & B00100000)>>5 == 1) SISTEMA = NES_; //Serial.println("NES");
+    if ((PIND & B00100000) >> 5 == 1) SISTEMA = NES_; //Serial.println("NES");
     else {
       analogWrite(pinNES, 0);
       analogWrite(pinNEOGEO, 255);
-      if ((PIND & B00100000)>>5 == 1) SISTEMA = NEOGEO_; //Serial.println("NEOGEO");
+      if ((PIND & B00100000) >> 5 == 1) SISTEMA = NEOGEO_; //Serial.println("NEOGEO");
       else {
         analogWrite(pinNEOGEO, 0);
         analogWrite(pinGENESIS, 255);
-        if ((PIND & B00100000)>>5 == 1) SISTEMA = GENESIS_; //Serial.println("GENESIS");
+        if ((PIND & B00100000) >> 5 == 1) SISTEMA = GENESIS_; //Serial.println("GENESIS");
         else {
           analogWrite(pinGENESIS, 0);
           SISTEMA = PCE_;//Serial.println("PCE");
@@ -240,12 +251,22 @@ void setup() {
   pinMode(pinGENESIS, INPUT);
   //pinMode(pinSelect, OUTPUT);
 
+
+  
+
+
 }
 
 void loop() {
 
+  
+
   Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
+  if(SerialNotInit) {
+      SISTEMA = NOT_SELECTED;
+  }
+  
   if (SISTEMA == GENESIS_)
   {
     for (byte gp = 0; gp <= 1; gp++)
@@ -302,8 +323,14 @@ void loop() {
     myShifter.init();//myPin_mask, &myPin_port);
   }
 
+
   switch (SISTEMA) {
     case NOT_SELECTED:
+      DDRD  = B00000000;
+      PORTD = B00000000;
+      DDRF  = B00000000;
+      PORTF = B00000000;
+      while(1) Serial.println("Not_selected");
       break;
 
     case SNES_:
@@ -379,7 +406,7 @@ void loop() {
               (PIND & gpBit[gp]) ? buttons[gp] &= ~btnBits_NES[btn] : buttons[gp] |= btnBits_NES[btn];
             sendClock();
           }
-          
+
           for (gp = 0; gp < GAMEPAD_COUNT; gp++)
           {
             // Has any buttons changed state?
@@ -627,7 +654,7 @@ void loop() {
 
   }
 
-
+  //}
   delay(10);
 }
 

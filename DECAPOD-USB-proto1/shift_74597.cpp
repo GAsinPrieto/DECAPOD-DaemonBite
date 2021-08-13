@@ -17,7 +17,7 @@ void shift_74597::init(){//uint8_t myPin_mask, volatile uint8_t *myPin_port){
   DDRD  |=  B00010000;// PD4-output - SCK
   DDRD  &= ~B00000010;// PD1-input - QH
   PORTD |=  B00000010; // enable internal pull-ups
-  DDRB  |=  B00100000;// PB5-output - RCK/SLOAD
+  DDRD  |=  B00100000;// PD5-output - RCK/SLOAD
   
   
 	//pinMode(_QH, INPUT);
@@ -27,12 +27,12 @@ void shift_74597::init(){//uint8_t myPin_mask, volatile uint8_t *myPin_port){
 	//pinMode(_SCLR, OUTPUT);
 	
 	//digitalWrite(_SLOAD, HIGH);
-	PORTB |= B00100000;// high
+	PORTD |= B00100000;// high
   //digitalWrite(_SCLR, HIGH);
 	//digitalWrite(_SCK, LOW);
-	PORTD &= ~B00010000;// low
+	PORTD &= ~B00110000;// low
   //digitalWrite(_RCK, LOW);
-  PORTB &= ~B00100000;// low
+  //PORTB &= ~B00100000;// low
 
   /*myPin_mask = digitalPinToBitMask(_QH);
   *myPin_port = portInputRegister(digitalPinToPort(_QH));*/
@@ -50,16 +50,16 @@ shift_74597::~shift_74597(){
 
 void shift_74597::load(){
 	//digitalWrite(_RCK, HIGH);
-	PORTB |= B00100000;// high
+	PORTD |= B00100000;// high
 	delayMicroseconds(DELAY);
 	//digitalWrite(_RCK, LOW);
-  PORTB &= ~B00100000;// low
+  PORTD &= ~B00100000;// low
 	delayMicroseconds(DELAY);
 	//digitalWrite(_SLOAD, LOW);
-	PORTB &= ~B00100000;// low
+	PORTD &= ~B00100000;// low
 	delayMicroseconds(DELAY);
 	//digitalWrite(_SLOAD, HIGH);
-  PORTB |= B00100000;// high
+  PORTD |= B00100000;// high
 	delayMicroseconds(DELAY);
 }
 
