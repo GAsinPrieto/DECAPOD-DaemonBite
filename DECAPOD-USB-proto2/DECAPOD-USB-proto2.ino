@@ -330,7 +330,7 @@ void loop() {
       PORTD = B00000000;
       DDRF  = B00000000;
       PORTF = B00000000;
-      while(1) Serial.println("Not_selected");
+      //while(1) Serial.println("Not_selected");
       break;
 
     case SNES_:
