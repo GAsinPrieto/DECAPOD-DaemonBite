@@ -201,7 +201,7 @@ int outputValueNEOGEO = 0;        // value output to the PWM (analog out)
 int outputValueGENESIS = 0;        // value output to the PWM (analog out)
 int SISTEMA = 0;
 
-bool SerialNotInit = false;
+//bool SerialNotInit = false;
 
 const char *gp_serial = "DECAPOD";
 
@@ -210,10 +210,13 @@ void setup() {
   Serial.begin(57600);
 
 
-  if(!Serial){
-    SerialNotInit=true;
-  }
-  
+  while(!(UDADDR & _BV(ADDEN))){ //check USB connection
+    //SerialNotInit=true;
+    DDRD  = B00000000;
+    PORTD = B00000000;
+    DDRF  = B00000000;
+    PORTF = B00000000;  
+  } 
    
   pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
@@ -252,6 +255,9 @@ void setup() {
   //pinMode(pinSelect, OUTPUT);
 
 
+  /*if(SerialNotInit) {
+      SISTEMA = NOT_SELECTED;
+  }*/
   
 
 
@@ -263,9 +269,6 @@ void loop() {
 
   Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
-  if(SerialNotInit) {
-      SISTEMA = NOT_SELECTED;
-  }
   
   if (SISTEMA == GENESIS_)
   {

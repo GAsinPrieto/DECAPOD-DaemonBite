@@ -35,7 +35,7 @@
 int SISTEMAgp = NOT_SELECTED;
 
 //GENERIC
-/*static const uint8_t _hidReportDescriptor[] PROGMEM = {
+static const uint8_t _hidReportDescriptor[] PROGMEM = {
   0x05, 0x01,                       // USAGE_PAGE (Generic Desktop)
   0x09, 0x04,                       // USAGE (Joystick) (Maybe change to gamepad? I don't think so but...)
   0xa1, 0x01,                       // COLLECTION (Application)
@@ -68,7 +68,7 @@ int SISTEMAgp = NOT_SELECTED;
 
     0xc0,                             // END_COLLECTION
   0xc0,                             // END_COLLECTION 
-};*/
+};
 
 
 
@@ -305,6 +305,15 @@ int Gamepad_::getInterface(uint8_t* interfaceCount)
     };
     return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
   }
+  else
+  {
+      HIDDescriptor hidInterface = {
+      D_INTERFACE(pluggedInterface, 1, USB_DEVICE_CLASS_HUMAN_INTERFACE, HID_SUBCLASS_NONE, HID_PROTOCOL_NONE),
+      D_HIDREPORT(sizeof(_hidReportDescriptor)),
+      D_ENDPOINT(USB_ENDPOINT_IN(pluggedEndpoint), USB_ENDPOINT_TYPE_INTERRUPT, USB_EP_SIZE, 0x01)
+    };
+    return USB_SendControl(0, &hidInterface, sizeof(hidInterface));
+  }
   
 }
 
@@ -331,8 +340,8 @@ int Gamepad_::getDescriptor(USBSetup& setup)
     return USB_SendControl(TRANSFER_PGM, _hidReportDescriptorNG, sizeof(_hidReportDescriptorNG));
   else if (SISTEMAgp == PCE)
     return USB_SendControl(TRANSFER_PGM, _hidReportDescriptorPCE, sizeof(_hidReportDescriptorPCE));
-  /*else
-    return USB_SendControl(TRANSFER_PGM, _hidReportDescriptor, sizeof(_hidReportDescriptor));  */
+  else
+    return USB_SendControl(TRANSFER_PGM, _hidReportDescriptor, sizeof(_hidReportDescriptor));
 }
 
 bool Gamepad_::setup(USBSetup& setup)
@@ -406,6 +415,12 @@ void Gamepad_::reset()
     _GamepadReport_NEOGEO.Y = 0;
     _GamepadReport_NEOGEO.buttons = 0;
   }
+  if (SISTEMAgp == NOT_SELECTED)
+  {
+    _GamepadReport.X = 0;
+    _GamepadReport.Y = 0;
+    _GamepadReport.buttons = 0;
+  }
   this->send();
 }
 
@@ -430,6 +445,10 @@ void Gamepad_::send()
   if (SISTEMAgp == NEOGEO)
   {
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_NEOGEO, sizeof(GamepadReport_NEOGEO));
+  }
+  if (SISTEMAgp == NOT_SELECTED)
+  {
+    USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport, sizeof(GamepadReport));
   }
 }
 
