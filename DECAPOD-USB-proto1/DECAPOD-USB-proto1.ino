@@ -271,7 +271,7 @@ void loop() {
     //SNES
     if (SISTEMA == SNES_) detectControllerTypes();
   }
-  else if (SISTEMA == PCE_) {
+  else if (SISTEMA == PCE_) { //GAP: check correct pin assignment
     //PCE
     // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
     DDRD  &= ~B00111100;
@@ -611,8 +611,8 @@ void loop() {
           if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
           {
             Gamepad[gp]._GamepadReport_PCE.buttons = buttons_PCE[gp][1];
-            Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
-            Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT) >> LEFT_SH);
+            Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
+            Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
             buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
             buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
             Gamepad[gp].send();
