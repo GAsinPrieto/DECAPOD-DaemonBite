@@ -73,13 +73,15 @@ class SegaControllers32U4 {
   public:
     SegaControllers32U4(void);
     void readState();
+    //void readState2();
     word currentState[2];
 
   private:
     void readPort1();
     void readPort2();
 
-    boolean _pinSelect;
+    boolean _pinSelect1;
+    boolean _pinSelect2;
 
     byte _ignoreCycles[2];
 

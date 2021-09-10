@@ -31,6 +31,8 @@
 #include "Arduino.h"
 #include "SegaControllers32U4.h"
 
+//bool port1_read = false, port2_read = true;
+
 SegaControllers32U4::SegaControllers32U4(void)
 {
   // Setup input pins (A0,A1,A2,A3,14,15 or PF7,PF6,PF5,PF4,PB3,PB1)
@@ -62,7 +64,9 @@ SegaControllers32U4::SegaControllers32U4(void)
   //PORTD &= B11111110; // Controller select pin low - controller 1
   //PORTD |= B00000001; // Controller select pin high - controller 2
   
-  _pinSelect = true;
+  //_pinSelect = true;
+  _pinSelect1 = true;
+  _pinSelect2 = true;
   for(byte i=0; i<=1; i++)
   {
     currentState[i] = 0;
@@ -72,7 +76,67 @@ SegaControllers32U4::SegaControllers32U4(void)
   }
 }
 
+
 void SegaControllers32U4::readState()
+{
+  //CONTROLLER 1
+  
+  PORTD &= B11111110; // Controller select pin low - controller 1
+  
+  // Set the select pins low/high
+  _pinSelect1 = !_pinSelect1;
+  if(!_pinSelect1) {
+    PORTE &= ~B01000000;
+    //PORTC &= ~B01000000;
+    //PORTB &= ~B00100000;
+    PORTD &= ~B00100000;
+  } else {
+    PORTE |=  B01000000;
+    //PORTC |=  B01000000;
+    //PORTB |=  B00100000;
+    PORTD |=  B00100000;
+  }
+
+  
+  // Short delay to stabilise outputs in controller
+  delayMicroseconds(SC_CYCLE_DELAY);
+
+  // Read all input registers
+  //_inputReg1 = PINF;
+  //_inputReg2 = PINB;
+  _inputReg3 = PIND;
+  readPort1();
+
+
+  PORTD |= B00000001; // Controller select pin high - controller 2
+  
+  
+  //CONTROLLER 2
+  // Set the select pins low/high
+  _pinSelect2 = !_pinSelect2;
+  if(!_pinSelect2) {
+    PORTE &= ~B01000000;
+    //PORTC &= ~B01000000;
+    PORTB &= ~B00100000;
+  } else {
+    PORTE |=  B01000000;
+    //PORTC |=  B01000000;
+    PORTB |=  B00100000;
+  }
+  
+
+  // Short delay to stabilise outputs in controller
+  delayMicroseconds(SC_CYCLE_DELAY);
+  // Read all input registers
+  //_inputReg1 = PINF;
+  //_inputReg2 = PINB;
+  _inputReg3 = PIND;
+  readPort2();
+}
+
+
+
+/*void SegaControllers32U4::readState1()
 {
   //CONTROLLER 1
   // Set the select pins low/high
@@ -100,30 +164,165 @@ void SegaControllers32U4::readState()
   _inputReg3 = PIND;
   readPort1();
 
-/*
+
   //CONTROLLER 2
   // Set the select pins low/high
-  _pinSelect = !_pinSelect;
-  if(!_pinSelect) {
-    PORTE &= ~B01000000;
+  //_pinSelect = !_pinSelect;
+  //if(!_pinSelect) {
+  //  PORTE &= ~B01000000;
     //PORTC &= ~B01000000;
-    PORTB &= ~B00100000;
-  } else {
-    PORTE |=  B01000000;
+  //  PORTB &= ~B00100000;
+  //} else {
+  //  PORTE |=  B01000000;
     //PORTC |=  B01000000;
-    PORTB |=  B00100000;
-  }
-  */ 
+  //  PORTB |=  B00100000;
+  //}
+   
 
-  PORTD |= B00000001; // Controller select pin high - controller 2
+  /*PORTD |= B00000001; // Controller select pin high - controller 2
   // Short delay to stabilise outputs in controller
   delayMicroseconds(SC_CYCLE_DELAY);
   // Read all input registers
   //_inputReg1 = PINF;
   //_inputReg2 = PINB;
   _inputReg3 = PIND;
-  readPort2();
-}
+  readPort2();*/
+//}
+
+
+
+
+
+
+
+/*void SegaControllers32U4::readState1()
+{
+  //if (port2_read){
+    PORTD &= B11111110; // Controller select pin low - controller 1
+  
+    //CONTROLLER 1
+    // Set the select pins low/high
+    _pinSelect = !_pinSelect;
+    if(!_pinSelect) {
+      PORTE &= ~B01000000;
+      //PORTC &= ~B01000000;
+      //PORTB &= ~B00100000;
+      PORTD &= ~B00100000;
+    } else {
+      PORTE |=  B01000000;
+      //PORTC |=  B01000000;
+      //PORTB |=  B00100000;
+      PORTD |=  B00100000;
+    }
+  
+    // Short delay to stabilise outputs in controller
+    delayMicroseconds(SC_CYCLE_DELAY);
+  
+    // Read all input registers
+    //_inputReg1 = PINF;
+    //_inputReg2 = PINB;
+    _inputReg3 = PIND;
+    readPort1();
+  /*}
+
+  
+   
+  if (port1_read){
+    PORTD |= B00000001; // Controller select pin high - controller 2
+    
+    //CONTROLLER 2
+    // Set the select pins low/high
+    _pinSelect = !_pinSelect;
+    if(!_pinSelect) {
+      PORTE &= ~B01000000;
+      //PORTC &= ~B01000000;
+      //PORTB &= ~B00100000;
+      PORTD &= ~B00100000;
+    } else {
+      PORTE |=  B01000000;
+      //PORTC |=  B01000000;
+      //PORTB |=  B00100000;
+      PORTD |=  B00100000;
+    }
+  
+    // Short delay to stabilise outputs in controller
+    delayMicroseconds(SC_CYCLE_DELAY);
+    // Read all input registers
+    //_inputReg1 = PINF;
+    //_inputReg2 = PINB;
+    _inputReg3 = PIND;
+    readPort2();
+  }*/
+//}
+
+
+
+/*void SegaControllers32U4::readState2()
+{
+  /*if (port2_read){
+    PORTD &= B11111110; // Controller select pin low - controller 1
+  
+    //CONTROLLER 1
+    // Set the select pins low/high
+    _pinSelect = !_pinSelect;
+    if(!_pinSelect) {
+      PORTE &= ~B01000000;
+      //PORTC &= ~B01000000;
+      //PORTB &= ~B00100000;
+      PORTD &= ~B00100000;
+    } else {
+      PORTE |=  B01000000;
+      //PORTC |=  B01000000;
+      //PORTB |=  B00100000;
+      PORTD |=  B00100000;
+    }
+  
+    // Short delay to stabilise outputs in controller
+    delayMicroseconds(SC_CYCLE_DELAY);
+  
+    // Read all input registers
+    //_inputReg1 = PINF;
+    //_inputReg2 = PINB;
+    _inputReg3 = PIND;
+    readPort1();
+  }
+
+  
+   
+  if (port1_read){*/
+/*    PORTD |= B00000001; // Controller select pin high - controller 2
+    
+    //CONTROLLER 2
+    // Set the select pins low/high
+    _pinSelect = !_pinSelect;
+    if(!_pinSelect) {
+      PORTE &= ~B01000000;
+      //PORTC &= ~B01000000;
+      //PORTB &= ~B00100000;
+      PORTD &= ~B00100000;
+    } else {
+      PORTE |=  B01000000;
+      //PORTC |=  B01000000;
+      //PORTB |=  B00100000;
+      PORTD |=  B00100000;
+    }
+  
+    // Short delay to stabilise outputs in controller
+    delayMicroseconds(SC_CYCLE_DELAY);
+    // Read all input registers
+    //_inputReg1 = PINF;
+    //_inputReg2 = PINB;
+    _inputReg3 = PIND;
+    readPort2();
+  //}
+}*/
+
+
+
+
+
+
+
 
 // "Normal" Six button controller reading routine, done a bit differently in this project
 // Cycle  TH out  TR in  TL in  D3 in  D2 in  D1 in  D0 in
@@ -140,7 +339,7 @@ void SegaControllers32U4::readPort1()
 {
   if(_ignoreCycles[0] <= 0)
   {
-    if(_pinSelect) // Select pin is HIGH
+    if(_pinSelect1) // Select pin is HIGH
     {
       if(_connected[0])
       {
@@ -206,6 +405,9 @@ void SegaControllers32U4::readPort1()
       (bitRead(_inputReg3, DB9_PIN1_BIT1) == LOW) ? currentState[0] |= SC_BTN_HOME : currentState[0] &= ~SC_BTN_HOME;
     }
   }
+
+  /*port1_read = true;
+  port2_read = false;*/
 }
 
 
@@ -213,7 +415,7 @@ void SegaControllers32U4::readPort2()
 {
   if(_ignoreCycles[1] <= 0)
   {
-    if(_pinSelect) // Select pin is HIGH
+    if(_pinSelect2) // Select pin is HIGH
     {
       if(_connected[1])
       {
@@ -279,4 +481,6 @@ void SegaControllers32U4::readPort2()
       (bitRead(_inputReg3, DB9_PIN1_BIT1) == LOW) ? currentState[1] |= SC_BTN_HOME : currentState[1] &= ~SC_BTN_HOME;
     }
   }
+  /*port1_read = false;
+  port2_read = true;*/
 }

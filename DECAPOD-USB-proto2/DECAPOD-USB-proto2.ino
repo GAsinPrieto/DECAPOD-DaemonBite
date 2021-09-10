@@ -207,7 +207,7 @@ const char *gp_serial = "DECAPOD";
 
 void setup() {
 
-  Serial.begin(57600);
+  //Serial.begin(57600);
 
 
   while(!(UDADDR & _BV(ADDEN))){ //check USB connection
@@ -329,10 +329,10 @@ void loop() {
 
   switch (SISTEMA) {
     case NOT_SELECTED:
-      DDRD  = B00000000;
+      /*DDRD  = B00000000;
       PORTD = B00000000;
       DDRF  = B00000000;
-      PORTF = B00000000;
+      PORTF = B00000000;*/
       //while(1) Serial.println("Not_selected");
       break;
 
@@ -435,6 +435,8 @@ void loop() {
       {
         Serial.println("GENESIS");
         controllers.readState();
+        //controllers.readState1();
+        //controllers.readState2();
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
