@@ -72,8 +72,8 @@ const byte SC_CYCLE_DELAY = 10; // Delay (µs) between setting the select pin an
 class SegaControllers32U4 {
   public:
     SegaControllers32U4(void);
-    void readState();
-    //void readState2();
+    void readState1();
+    void readState2();
     word currentState[2];
 
   private:

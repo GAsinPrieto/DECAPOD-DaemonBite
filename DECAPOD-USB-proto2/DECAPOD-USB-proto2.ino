@@ -93,7 +93,8 @@ uint8_t reverse(uint8_t in)
 
 
 //NES
-#define GAMEPAD_COUNT 2      // NOTE: No more than TWO gamepads are possible at the moment due to a USB HID issue.
+//#define GAMEPAD_COUNT 2      // NOTE: No more than TWO gamepads are possible at the moment due to a USB HID issue.
+int GAMEPAD_COUNT=2;
 #define GAMEPAD_COUNT_MAX 4  // NOTE: For some reason, can't have more than two gamepads without serial breaking. Can someone figure out why?
 //       (It has something to do with how Arduino handles HID devices)
 #define BUTTON_COUNT       8 // Standard NES controller has four buttons and four axes, totalling 8
@@ -266,7 +267,7 @@ void setup() {
 void loop() {
 
   
-
+  if (SISTEMA == PCE_) GAMEPAD_COUNT=1;
   Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
   
@@ -295,17 +296,17 @@ void loop() {
     //SNES
     if (SISTEMA == SNES_) detectControllerTypes();
   }
-  else if (SISTEMA == PCE_) { //GAP: check correct pin assignment
+  else if (SISTEMA == PCE_) {
     //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D3 (DOWN), D2(L)
-    DDRD  &= ~B00111100;
-    //DDRB  &= ~B00100000;
-    PORTD |=  B00111100;
-    //PORTB |=  B00100000;
+    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D1 (DOWN), D2(L)
+    DDRD  &= ~B00010110;
+    DDRB  &= ~B00100000;
+    PORTD |=  B00010110;
+    PORTB |=  B00100000;
 
     // Set B1 and B3 as outputs and set them LOW --> B4 (SEL), D0 (OE)
-    //PORTB &= ~B00010000;
-    //DDRB  |=  B00010000;
+    PORTB &= ~B00010000;
+    DDRB  |=  B00010000;
     PORTD &= ~B01000001;
     DDRD  |=  B01000001;
 
@@ -434,9 +435,8 @@ void loop() {
       while (1)
       {
         Serial.println("GENESIS");
-        controllers.readState();
-        //controllers.readState1();
-        //controllers.readState2();
+        //controllers.readState();
+        controllers.readState1();
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
@@ -448,6 +448,7 @@ void loop() {
         }
 
 
+        controllers.readState2();
         gp = 1;
         if (controllers.currentState[gp] != lastState[gp])
         {
@@ -619,16 +620,16 @@ void loop() {
         buttons_PCE[1][0] = 0; buttons_PCE[1][1] = 0;
 
         // Read all button and axes states
-        //PORTB |= B00010000;                        // Set SELECT pin HIGH
-        PORTD |= B01000000;                        // Set SELECT pin HIGH
+        PORTB |= B00010000;                        // Set SELECT pin HIGH
+        //PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][0] = (PIND & B00111100);// | (PINB & B00100000);          // Read DPAD for controller 1
+        buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);          // Read DPAD for controller 1
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][0] = (PINF & B11110000) >> 4; // Read DPAD for controller 2
         //PORTB &= ~B00010000;                       // Set SELECT pin LOW
         PORTD &= ~B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][1] = (PIND & B00111100);// | (PINB & B00100000);          // Read buttons for controller 1
+        buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);         // Read buttons for controller 1
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][1] = (PINF & B11110000) >> 4; // Read buttons for controller 2
 
