@@ -297,6 +297,22 @@ void loop() {
     if (SISTEMA == SNES_) detectControllerTypes();
   }
   else if (SISTEMA == PCE_) {
+
+
+    /*PINOUT comparison:
+    up/I PD0 - AH9 - PD4
+    R/II PD1 - AG11 - PB5
+    down/sel PD2 - AF15 - PD1
+    L/start PD3 - AH11 - PD2
+    Dsel PB1 - AH12 - PB4
+    EN PB3 - AG16 - PD0
+    
+    
+    
+    PD2 - PD1 - PB5 - PD4
+    PD3 - PD2 - PB1 - PD0
+    */
+    
     //PCE
     // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D1 (DOWN), D2(L)
     DDRD  &= ~B00010110;
