@@ -642,8 +642,8 @@ void loop() {
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);          // Read DPAD for controller 1
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][0] = (PINF & B11110000) >> 4; // Read DPAD for controller 2
-        //PORTB &= ~B00010000;                       // Set SELECT pin LOW
-        PORTD &= ~B01000000;                        // Set SELECT pin HIGH
+        PORTB &= ~B00010000;                       // Set SELECT pin LOW
+        //PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);         // Read buttons for controller 1
         //if (GAMEPAD_COUNT == 2)
