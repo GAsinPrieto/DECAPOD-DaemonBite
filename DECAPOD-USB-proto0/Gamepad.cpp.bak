@@ -446,10 +446,6 @@ void Gamepad_::send()
   {
     USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport_NEOGEO, sizeof(GamepadReport_NEOGEO));
   }
-  if (SISTEMAgp == NOT_SELECTED)
-  {
-    USB_Send(pluggedEndpoint | TRANSFER_RELEASE, &_GamepadReport, sizeof(GamepadReport));
-  }
 }
 
 uint8_t Gamepad_::getShortName(char *name)

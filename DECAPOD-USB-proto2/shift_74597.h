@@ -11,12 +11,12 @@
 
 class shift_74597{
 	private:
-		int _QH;//, _SCK, _RCK, _SLOAD, _SCLR;
+		int _QH;
     uint8_t myPin_mask;
     //volatile uint8_t *myPin_port;
 
 	public:
-		shift_74597(int QH);//, int SCK, int RCK, int SLOAD, int SCLR);
+		shift_74597(int QH);
 		~shift_74597();
 
 		void init();
