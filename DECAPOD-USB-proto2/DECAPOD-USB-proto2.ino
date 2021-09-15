@@ -217,7 +217,7 @@ void setup() {
     PORTD = B00000000;
     DDRF  = B00000000;
     PORTF = B00000000;  
-  } 
+  }
    
   pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
@@ -275,6 +275,7 @@ void loop() {
   {
     for (byte gp = 0; gp <= 1; gp++)
       Gamepad[gp].reset();
+    DDRD  |=  B00000001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
     DDRD  |=  B10110000;//B00000011; // output
@@ -287,7 +288,6 @@ void loop() {
     //PORTF |=  B11110000; // enable internal pull-ups
     DDRD  &= ~B00000110; // inputs
     PORTD |=  B00000110; // enable internal pull-ups
-    ////////////////////////GAP
 
 
 
@@ -301,28 +301,25 @@ void loop() {
 
     /*PINOUT comparison:
     up/I PD0 - AH9 - PD4
-    R/II PD1 - AG11 - PB5
+    R/II PD1 - AG11 - PD5
     down/sel PD2 - AF15 - PD1
     L/start PD3 - AH11 - PD2
-    Dsel PB1 - AH12 - PB4
+    Dsel PB1 - AH12 - PD6
     EN PB3 - AG16 - PD0
     
     
     
-    PD2 - PD1 - PB5 - PD4
-    PD3 - PD2 - PB1 - PD0
+    PD2 - PD1 - PD5 - PD4
     */
     
     //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), B5 (R), D1 (DOWN), D2(L)
-    DDRD  &= ~B00010110;
-    DDRB  &= ~B00100000;
-    PORTD |=  B00010110;
-    PORTB |=  B00100000;
-
-    // Set B1 and B3 as outputs and set them LOW --> B4 (SEL), D0 (OE)
-    PORTB &= ~B00010000;
-    DDRB  |=  B00010000;
+    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), D5 (R), D1 (DOWN), D2(L)
+    DDRD  &= ~B00110110;
+    PORTD |=  B00110110;
+    
+    // Set B1 and B3 as outputs and set them LOW --> D6 (SEL), D0 (OE)
+    //PORTB &= ~B00010000;
+    //DDRB  |=  B00010000;
     PORTD &= ~B01000001;
     DDRD  |=  B01000001;
 
@@ -636,16 +633,16 @@ void loop() {
         buttons_PCE[1][0] = 0; buttons_PCE[1][1] = 0;
 
         // Read all button and axes states
-        PORTB |= B00010000;                        // Set SELECT pin HIGH
-        //PORTD |= B01000000;                        // Set SELECT pin HIGH
+        //PORTB |= B00010000;                        // Set SELECT pin HIGH
+        PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);          // Read DPAD for controller 1
+        buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][0] = (PINF & B11110000) >> 4; // Read DPAD for controller 2
-        PORTB &= ~B00010000;                       // Set SELECT pin LOW
-        //PORTD &= ~B01000000;                        // Set SELECT pin LOW
+        //PORTB &= ~B00010000;                       // Set SELECT pin LOW
+        PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00010000) >> 4) | ((PINB & B00100000) >> 4);         // Read buttons for controller 1
+        buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][1] = (PINF & B11110000) >> 4; // Read buttons for controller 2
 
