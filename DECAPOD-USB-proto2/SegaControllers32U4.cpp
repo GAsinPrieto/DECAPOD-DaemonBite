@@ -58,8 +58,10 @@ SegaControllers32U4::SegaControllers32U4(void)
   //PORTD &= B11111110; // Controller select pin low - controller 1
   //PORTD |= B00000001; // Controller select pin high - controller 2
   
-  _pinSelect1 = true;
-  _pinSelect2 = true;
+  //_pinSelect1 = true;
+  //_pinSelect2 = true;
+  _pinSelect[0] = true;
+  _pinSelect[1] = true;
   for(byte i=0; i<=1; i++)
   {
     currentState[i] = 0;
@@ -69,7 +71,7 @@ SegaControllers32U4::SegaControllers32U4(void)
   }
 }
 
-void SegaControllers32U4::readState1()
+/*void SegaControllers32U4::readState1()
 {
   //CONTROLLER 1
   
@@ -89,7 +91,8 @@ void SegaControllers32U4::readState1()
 
   // Read all input registers
   _inputReg3 = PIND;
-  readPort1();
+  //readPort1();
+  readPort(0);
 }
 
 void SegaControllers32U4::readState2()
@@ -111,7 +114,31 @@ void SegaControllers32U4::readState2()
   delayMicroseconds(SC_CYCLE_DELAY);
   // Read all input registers
   _inputReg3 = PIND;
-  readPort2();
+  //readPort2();
+  readPort(1);
+}*/
+
+
+void SegaControllers32U4::readState(int gp)
+{  
+  if (gp == 0) PORTD &= B11111110; // Controller select pin low - controller 1
+  else PORTD |= B00000001; // Controller select pin high - controller 2
+  
+  // Set the select pins low/high
+  _pinSelect[gp] = !_pinSelect[gp];
+  if(!_pinSelect[gp]) {
+    PORTD &= ~B00100000;
+  } else {
+    PORTD |=  B00100000;
+  }
+
+  
+  // Short delay to stabilise outputs in controller
+  delayMicroseconds(SC_CYCLE_DELAY);
+
+  // Read all input registers
+  _inputReg = PIND;
+  readPort(gp);
 }
 
 // "Normal" Six button controller reading routine, done a bit differently in this project
@@ -125,7 +152,7 @@ void SegaControllers32U4::readState2()
 // 6      LO      ---    ---    ---    ---    ---    Home    (Home only for 8bitdo wireless gamepads)      
 // 7      HI      ---    ---    ---    ---    ---    ---    
 
-void SegaControllers32U4::readPort1()
+/*void SegaControllers32U4::readPort1()
 {
   if(_ignoreCycles[0] <= 0)
   {
@@ -266,6 +293,83 @@ void SegaControllers32U4::readPort2()
     if(_ignoreCycles[1]-- == 2) // Decrease the ignore cycles counter and read 8bitdo home in first "ignored" cycle, this cycle is unused on normal 6-button controllers
     {
       (bitRead(_inputReg3, DB9_PIN1_BIT1) == LOW) ? currentState[1] |= SC_BTN_HOME : currentState[1] &= ~SC_BTN_HOME;
+    }
+  }
+}*/
+
+
+
+void SegaControllers32U4::readPort(int gp)
+{
+  if(_ignoreCycles[gp] <= 0)
+  {
+    /*if (gp==0) _pinSelect = _pinSelect1;
+    else _pinSelect = _pinSelect1;*/
+    
+    if(_pinSelect[gp]) // Select pin is HIGH
+    {
+      if(_connected[gp])
+      {
+        // Check if six button mode is active
+        if(_sixButtonMode[gp])
+        {
+          // Read input pins for X, Y, Z, Mode  //PD6 y PD4, PD3, PD1 en lugar de PF4-7
+          (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_Z : currentState[gp] &= ~SC_BTN_Z; //UP
+          (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) ? currentState[gp] |= SC_BTN_Y : currentState[gp] &= ~SC_BTN_Y; //DW
+          (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) ? currentState[gp] |= SC_BTN_X : currentState[gp] &= ~SC_BTN_X; //L
+          (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) ? currentState[gp] |= SC_BTN_MODE : currentState[gp] &= ~SC_BTN_MODE; //R
+          _sixButtonMode[gp] = false;
+          _ignoreCycles[gp] = 2; // Ignore the two next cycles (cycles 6 and 7 in table above)
+        }
+        else
+        {
+          // Read input pins for Up, Down, Left, Right, B, C
+          (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_UP : currentState[gp] &= ~SC_BTN_UP;
+          (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) ? currentState[gp] |= SC_BTN_DOWN : currentState[gp] &= ~SC_BTN_DOWN;
+          (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) ? currentState[gp] |= SC_BTN_LEFT : currentState[gp] &= ~SC_BTN_LEFT;
+          (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) ? currentState[gp] |= SC_BTN_RIGHT : currentState[gp] &= ~SC_BTN_RIGHT;
+          (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) ? currentState[gp] |= SC_BTN_B : currentState[gp] &= ~SC_BTN_B; //A
+          (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) ? currentState[gp] |= SC_BTN_C : currentState[gp] &= ~SC_BTN_C; //START
+        }
+      }
+      else // No Mega Drive controller is connected, use SMS/Atari mode
+      {
+        // Clear current state
+        currentState[gp] = 0;
+        
+        // Read input pins for Up, Down, Left, Right, Fire1, Fire2
+        if (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) { currentState[gp] |= SC_BTN_UP; }
+        if (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) { currentState[gp] |= SC_BTN_DOWN; }
+        if (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) { currentState[gp] |= SC_BTN_LEFT; }
+        if (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) { currentState[gp] |= SC_BTN_RIGHT; }
+        if (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) { currentState[gp] |= SC_BTN_A; }
+        if (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) { currentState[gp] |= SC_BTN_B; }
+      }
+    }
+    else // Select pin is LOW
+    {
+      // Check if a controller is connected
+      _connected[gp] = (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW && bitRead(_inputReg, DB9_PIN4_BIT1) == LOW);
+      
+      // Check for six button mode
+      _sixButtonMode[gp] = (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW && bitRead(_inputReg, DB9_PIN2_BIT1) == LOW);
+      
+      // Read input pins for A and Start 
+      if(_connected[gp])
+      {
+        if(!_sixButtonMode[gp])
+        {
+          (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) ? currentState[gp] |= SC_BTN_A : currentState[gp] &= ~SC_BTN_A;
+          (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) ? currentState[gp] |= SC_BTN_START : currentState[gp] &= ~SC_BTN_START; 
+        }
+      }
+    }
+  }
+  else
+  {
+    if(_ignoreCycles[gp]-- == 2) // Decrease the ignore cycles counter and read 8bitdo home in first "ignored" cycle, this cycle is unused on normal 6-button controllers
+    {
+      (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_HOME : currentState[gp] &= ~SC_BTN_HOME;
     }
   }
 }
