@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include "HID.h"
 
 extern const char* gp_serial;

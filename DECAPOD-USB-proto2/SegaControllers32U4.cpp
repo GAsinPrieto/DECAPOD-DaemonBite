@@ -119,7 +119,7 @@ void SegaControllers32U4::readState2()
 }*/
 
 
-void SegaControllers32U4::readState(int gp)
+void SegaControllers32U4::readState(byte gp)
 {  
   if (gp == 0) PORTD &= B11111110; // Controller select pin low - controller 1
   else PORTD |= B00000001; // Controller select pin high - controller 2
@@ -299,7 +299,7 @@ void SegaControllers32U4::readPort2()
 
 
 
-void SegaControllers32U4::readPort(int gp)
+void SegaControllers32U4::readPort(byte gp)
 {
   if(_ignoreCycles[gp] <= 0)
   {
@@ -348,6 +348,7 @@ void SegaControllers32U4::readPort(int gp)
     }
     else // Select pin is LOW
     {
+  
       // Check if a controller is connected
       _connected[gp] = (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW && bitRead(_inputReg, DB9_PIN4_BIT1) == LOW);
       

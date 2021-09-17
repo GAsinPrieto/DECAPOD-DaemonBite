@@ -253,9 +253,9 @@ void loop() {
 
   if (SISTEMA == GENESIS_)
   {
-  	for (byte gp = 0; gp <= 1; gp++)
-    	Gamepad[gp].reset();
-	DDRD  |=  B00000001; // output
+      for (byte gp = 0; gp <= 1; gp++)
+    	   Gamepad[gp].reset();
+      DDRD  |=  B00000001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output
