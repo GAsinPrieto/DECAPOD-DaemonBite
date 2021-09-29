@@ -157,10 +157,10 @@ static const uint8_t _hidReportDescriptorPCE[] PROGMEM = {
       0x75, 0x01,                       // REPORT_SIZE (1)
       0x81, 0x02,                       // INPUT (Data,Var,Abs)
 
-      0x95, 0x01,                       // REPORT_COUNT (1) ; pad out the bits into a number divisible by 8
+/*      0x95, 0x01,                       // REPORT_COUNT (1) ; pad out the bits into a number divisible by 8
       0x75, 0x08,                       // REPORT_SIZE (8)
       0x81, 0x03,                       // INPUT (Const,Var,Abs)
-
+*/
       0x05, 0x01,                       // USAGE_PAGE (Generic Desktop)
       0x09, 0x01,                       // USAGE (pointer)
       0xa1, 0x00,                       // COLLECTION (Physical) 

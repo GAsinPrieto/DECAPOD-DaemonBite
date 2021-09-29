@@ -142,7 +142,7 @@ void SegaControllers32U4::readState(/*byte gp*/)
   PORTD |= B00000001; // Controller select pin high - controller 2
 
   // Short delay to stabilise outputs MUX GAP: needed??
-  //delayMicroseconds(SC_CYCLE_DELAY);
+  delayMicroseconds(1);
 
   _inputReg2 = PIND;
 

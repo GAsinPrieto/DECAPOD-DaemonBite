@@ -635,7 +635,7 @@ void loop() {
           // Has any buttons changed state?
           if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
           {
-			Gamepad[gp]._GamepadReport_PCE.buttons = buttons_PCE[gp][1];
+			Gamepad[gp]._GamepadReport_PCE.buttons = buttons_PCE[gp][1] & B00001111;
 			Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
             Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
             buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
