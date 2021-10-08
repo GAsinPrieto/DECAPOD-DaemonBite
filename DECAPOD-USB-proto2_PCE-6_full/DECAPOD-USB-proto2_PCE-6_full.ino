@@ -288,7 +288,7 @@ void loop() {
     */
     
     //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), D5 (R), D1 (DOWN), D2(L)
+    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP/I), D5 (R/II), D1 (DOWN/SEL), D2(L/START)
     DDRD  &= ~B00110110;
     PORTD |=  B00110110;
     
@@ -618,17 +618,17 @@ void loop() {
         PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
-        if (GAMEPAD_COUNT == 2)
-          buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
+        //if (GAMEPAD_COUNT == 2)
+        //  buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
         PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
-        if (GAMEPAD_COUNT == 2)
-          buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
+        //if (GAMEPAD_COUNT == 2)
+        //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
 
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
-        buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
+        //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
 
         // Send data to USB if values have changed
         for (gp = 0; gp < GAMEPAD_COUNT; gp++)
