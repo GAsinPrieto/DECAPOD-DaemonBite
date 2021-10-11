@@ -604,9 +604,9 @@ void loop() {
         microsNow = micros();
         if ((microsNow - microsEnable) >= FRAME_TIME)
         {
-          PORTD |= B00000001;                      // Set enable pin HIGH to increase clock for turbo
+          //PORTD |= B00000001;                      // Set enable pin HIGH to increase clock for turbo
           delayMicroseconds(SELECT_PAUSE);         // Wait a while...
-          PORTD &= ~B00000001;                     // Set enable pin LOW again
+          //PORTD &= ~B00000001;                     // Set enable pin LOW again
           microsEnable = microsNow;
         }
 
@@ -618,17 +618,17 @@ void loop() {
         PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
         PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
 
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
-        //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
+        buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
 
         // Send data to USB if values have changed
         for (gp = 0; gp < GAMEPAD_COUNT; gp++)
