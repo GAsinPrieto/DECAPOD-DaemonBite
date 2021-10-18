@@ -82,9 +82,9 @@ class SegaControllers32U4 {
     void readPort2();
     //void readPort(/*byte gp*/);
 
-    //boolean _pinSelect1;
-    //boolean _pinSelect2;
-    boolean _pinSelect;//[2];
+    boolean _pinSelect1;
+    boolean _pinSelect2;
+    //boolean _pinSelect;//[2];
 
     byte _ignoreCycles[2];
 

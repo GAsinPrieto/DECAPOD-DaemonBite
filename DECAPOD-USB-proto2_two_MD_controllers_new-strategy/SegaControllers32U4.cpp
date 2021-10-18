@@ -58,9 +58,9 @@ SegaControllers32U4::SegaControllers32U4(void)
   //PORTD &= B11111110; // Controller select pin low - controller 1
   //PORTD |= B00000001; // Controller select pin high - controller 2
   
-  //_pinSelect1 = true;
-  //_pinSelect2 = true;
-  _pinSelect/*[0]*/ = true;
+  _pinSelect1 = true;
+  _pinSelect2 = true;
+  //_pinSelect/*[0]*/ = true;
   //_pinSelect[1] = true;
   for(byte i=0; i<=1; i++)
   {
@@ -121,33 +121,50 @@ void SegaControllers32U4::readState2()
 
 void SegaControllers32U4::readState(/*byte gp*/)
 {  
-  /*if (gp == 0) */PORTD &= B11111110; // Controller select pin low - controller 1
-  //else PORTD |= B00000001; // Controller select pin high - controller 2
-  
+  PORTD &= B11111110; // Controller select pin low - controller 1
+
+  delayMicroseconds(1);
+
   // Set the select pins low/high
-  _pinSelect/*[gp]*/ = !_pinSelect/*[gp]*/;
-  if(!_pinSelect/*[gp]*/) {
+  _pinSelect1 = !_pinSelect1;
+  if(!_pinSelect1) {
     PORTD &= ~B00100000;
   } else {
     PORTD |=  B00100000;
   }
 
+  delayMicroseconds(1);
+
+  PORTD |= B00000001; // Controller select pin high - controller 2
+
+  delayMicroseconds(1);
+
+  // Set the select pins low/high
+  _pinSelect2 = !_pinSelect2;
+  if(!_pinSelect2) {
+    PORTD &= ~B00100000;
+  } else {
+    PORTD |=  B00100000;
+  }
+
+  delayMicroseconds(1);
+
+  PORTD &= B11111110; // Controller select pin low - controller 1
   
   // Short delay to stabilise outputs in controller
-  delayMicroseconds(SC_CYCLE_DELAY);
+  delayMicroseconds(SC_CYCLE_DELAY-4);
 
   // Read all input registers
   _inputReg1 = PIND;
 
-  /*PORTD |= B00000001; // Controller select pin high - controller 2
+  PORTD |= B00000001; // Controller select pin high - controller 2
 
-  // Short delay to stabilise outputs MUX GAP: needed??
-  delayMicroseconds(5);
+  delayMicroseconds(1);
 
-  _inputReg2 = PIND;*/
+  _inputReg2 = PIND;
 
-  readPort1(/*gp*/);
-  //readPort2(/*gp*/);
+  readPort1();
+  readPort2();
 }
 
 // "Normal" Six button controller reading routine, done a bit differently in this project
@@ -165,7 +182,7 @@ void SegaControllers32U4::readPort1()
 {
   if(_ignoreCycles[0] <= 0)
   {
-    if(_pinSelect) // Select pin is HIGH
+    if(_pinSelect1) // Select pin is HIGH
     {
       if(_connected[0])
       {
@@ -238,7 +255,7 @@ void SegaControllers32U4::readPort2()
 {
   if(_ignoreCycles[1] <= 0)
   {
-    if(_pinSelect) // Select pin is HIGH
+    if(_pinSelect2) // Select pin is HIGH
     {
       if(_connected[1])
       {
