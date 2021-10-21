@@ -243,6 +243,7 @@ void setup() {
   pinMode(pinNES, INPUT);
   pinMode(pinNEOGEO, INPUT);
   pinMode(pinGENESIS, INPUT);  */
+  SISTEMA = GENESIS_;
 
 }
 
