@@ -123,7 +123,7 @@ void SegaControllers32U4::readState(/*byte gp*/)
 {  
   PORTD &= B11111110; // Controller select pin low - controller 1
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   // Set the select pins low/high
   _pinSelect1 = !_pinSelect1;
@@ -133,11 +133,11 @@ void SegaControllers32U4::readState(/*byte gp*/)
     PORTD |=  B00100000;
   }
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   PORTD |= B00000001; // Controller select pin high - controller 2
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   // Set the select pins low/high
   _pinSelect2 = !_pinSelect2;
@@ -147,19 +147,19 @@ void SegaControllers32U4::readState(/*byte gp*/)
     PORTD |=  B00100000;
   }
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   PORTD &= B11111110; // Controller select pin low - controller 1
   
   // Short delay to stabilise outputs in controller
-  delayMicroseconds(SC_CYCLE_DELAY-4);
+  delayMicroseconds(SC_CYCLE_DELAY-8);
 
   // Read all input registers
   _inputReg1 = PIND;
 
   PORTD |= B00000001; // Controller select pin high - controller 2
 
-  delayMicroseconds(1);
+  delayMicroseconds(6);
 
   _inputReg2 = PIND;
 
