@@ -67,7 +67,7 @@ enum
   DB9_PIN9_BIT2 = 7
 };
 
-const byte SC_CYCLE_DELAY = 5;//10; // Delay (µs) between setting the select pin and reading the button pins
+const byte SC_CYCLE_DELAY = 10; // Delay (µs) between setting the select pin and reading the button pins
 
 class SegaControllers32U4 {
   public:
