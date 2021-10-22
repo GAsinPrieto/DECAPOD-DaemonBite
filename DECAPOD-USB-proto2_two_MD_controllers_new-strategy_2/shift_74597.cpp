@@ -67,4 +67,3 @@ char shift_74597::getByteReverse(){
 	}
 	return result;
 }
-

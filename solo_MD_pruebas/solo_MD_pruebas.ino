@@ -259,15 +259,15 @@ void loop() {
       DDRD  |=  B00000001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
-	  DDRD  |=  B10110000; // output
+	DDRD  |=  B10110000; // output
     
     PORTD &= ~B10110000; // low
     
-  	// Setup data pins (A0-A3 or PF7-PF4)
-  	DDRD  &= ~B00000110; // inputs
-  	PORTD |=  B00000110; // enable internal pull-ups
-  
-  	delay(500);
+	// Setup data pins (A0-A3 or PF7-PF4)
+	DDRD  &= ~B00000110; // inputs
+	PORTD |=  B00000110; // enable internal pull-ups
+
+	delay(500);
 
     //SNES
     if (SISTEMA == SNES_) detectControllerTypes();
@@ -305,7 +305,7 @@ void loop() {
   	// Initialize debouncing timestamps
   	for (pin = 0; pin < 4; pin++)
     	axesMillis[pin] = 0;
-	  for (pin = 0; pin < 12; pin++)
+	for (pin = 0; pin < 12; pin++)
     	buttonsMillis[pin] = 0;
 
 #ifdef DEBUG
@@ -441,7 +441,6 @@ void loop() {
           
           /*if (gp==0) controllers.readState1();
           else controllers.readState2();*/
-          
           
           controllers.readState(/*gp*/);
           
@@ -657,7 +656,6 @@ void loop() {
 
   }
 
-  
 }
 
 void sendLatch()

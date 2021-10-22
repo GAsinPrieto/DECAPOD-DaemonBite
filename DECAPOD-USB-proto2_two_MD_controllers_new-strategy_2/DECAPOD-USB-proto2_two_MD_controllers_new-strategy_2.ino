@@ -255,7 +255,7 @@ void loop() {
   {
       for (byte gp = 0; gp <= 1; gp++)
     	   Gamepad[gp].reset();
-      DDRD  |=  B00000001; // output
+      DDRD  |=  B00100001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output
@@ -436,12 +436,12 @@ void loop() {
         }*/
 
 
-        controllers.readState(/*gp*/);
         for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
           
           /*if (gp==0) controllers.readState1();
           else controllers.readState2();*/
           
+          controllers.readState(/*gp*/);
           
           if (controllers.currentState[gp] != lastState[gp])
           {
@@ -453,6 +453,9 @@ void loop() {
           }
         }
       }
+
+      delay(10);
+      
       break;
 
     case NEOGEO_:
@@ -652,7 +655,6 @@ void loop() {
 
   }
 
-  delay(10);
 }
 
 void sendLatch()

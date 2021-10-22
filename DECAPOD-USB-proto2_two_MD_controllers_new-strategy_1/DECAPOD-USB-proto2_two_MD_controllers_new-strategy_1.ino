@@ -202,13 +202,13 @@ const char *gp_serial = "DECAPOD";
 
 void setup() {
 
-  while(!(UDADDR & _BV(ADDEN))){ //check USB connection
+  /*while(!(UDADDR & _BV(ADDEN))){ //check USB connection
     //SerialNotInit=true;
     DDRD  = B00000000;
     PORTD = B00000000;
     DDRF  = B00000000;
     PORTF = B00000000;  
-  }
+  }*/
   
   pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
@@ -243,12 +243,12 @@ void setup() {
   pinMode(pinNES, INPUT);
   pinMode(pinNEOGEO, INPUT);
   pinMode(pinGENESIS, INPUT);  
-
+  SISTEMA = GENESIS_;
 }
 
 void loop() {
 
-  if (SISTEMA == GENESIS_) GAMEPAD_COUNT=1;
+  if (SISTEMA == PCE_) GAMEPAD_COUNT=1;
   Gamepad_ Gamepad[GAMEPAD_COUNT](SISTEMA);
 
   if (SISTEMA == GENESIS_)
@@ -436,12 +436,12 @@ void loop() {
         }*/
 
 
-        controllers.readState(/*gp*/);
         for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
           
           /*if (gp==0) controllers.readState1();
           else controllers.readState2();*/
           
+          controllers.readState(/*gp*/);
           
           if (controllers.currentState[gp] != lastState[gp])
           {
@@ -453,6 +453,9 @@ void loop() {
           }
         }
       }
+
+      delay(10);
+      
       break;
 
     case NEOGEO_:
@@ -652,7 +655,6 @@ void loop() {
 
   }
 
-  delay(10);
 }
 
 void sendLatch()
