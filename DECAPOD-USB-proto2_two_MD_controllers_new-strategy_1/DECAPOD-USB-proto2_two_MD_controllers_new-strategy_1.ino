@@ -256,6 +256,7 @@ void loop() {
       for (byte gp = 0; gp <= 1; gp++)
     	   Gamepad[gp].reset();
       DDRD  |=  B00000001; // output
+      pinMode(pinGENESIS, OUTPUT);  
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output

@@ -51,10 +51,10 @@ SegaControllers32U4::SegaControllers32U4(void)
   DDRD  &= ~B11011110; // input
   PORTD |=  B11011110; // high to enable internal pull-up
 
-  DDRE  |= B01000000; 
+  //DDRE  |= B01000000; 
   DDRD  |= B00100001; // Select pins as output
   PORTD |= B00100000; // Select pins high
-  PORTE |= B01000000;
+  //PORTE |= B01000000;
   //PORTD &= B11111110; // Controller select pin low - controller 1
   //PORTD |= B00000001; // Controller select pin high - controller 2
   

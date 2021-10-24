@@ -72,7 +72,6 @@ uint8_t reverse(uint8_t in)
 
 
 
-
 //PCE
 #define SELECT_PAUSE 20  // How many microseconds to wait after setting select/enable lines?
 #define FRAME_TIME 16667 // The time of one "frame" in µs (used for turbo functionality)
@@ -86,6 +85,7 @@ uint8_t reverse(uint8_t in)
 #define LEFT_SH  3
 #define RIGHT_SH 1
 
+int suma=5;
 
 
 
@@ -626,21 +626,6 @@ void loop() {
         //if (GAMEPAD_COUNT == 2)
         //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
 
-        /*// Read all button and axes states
-        PORTD |= B01000001;                        // Set SELECT and OE pins HIGH
-        delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
-        PORTD &= ~B01000000;                        // Set SELECT pin LOW
-        delayMicroseconds(SELECT_PAUSE);           // Wait a while...
-        buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
-        PORTD &= ~B00000001;                        // Set OE pin LOW (for next iteration)
-        */
-        
-
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
         //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
@@ -652,6 +637,8 @@ void loop() {
           //if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
           //if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111 || buttons_PCE[gp][1]&B00001111 != buttonsPrev_PCE[gp][1]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1]) ))
           if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0]) ))
+          suma = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
+          if ((suma<4 && buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || (suma==4 && (buttons_PCE[gp][0] & B11110000)!=(buttonsPrev_PCE[gp][0] & B11110000)))
           {
 
             //if ((~buttons_PCE[gp][0] & B00001111) == B00001111)
@@ -667,7 +654,7 @@ void loop() {
               Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
             }
             buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
-            buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
+            //buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
             Gamepad[gp].send();
           }
         }
