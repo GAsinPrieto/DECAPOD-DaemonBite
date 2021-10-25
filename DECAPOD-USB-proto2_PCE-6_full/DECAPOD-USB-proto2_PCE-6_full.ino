@@ -646,7 +646,7 @@ void loop() {
             {
               Gamepad[gp]._GamepadReport_PCE.Y = 0;
               Gamepad[gp]._GamepadReport_PCE.X = 0;
-              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] << 4) & B11110000;
+              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;
             }
             else {
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
