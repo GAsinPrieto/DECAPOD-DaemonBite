@@ -293,9 +293,9 @@ void loop() {
     
     
     // Set B1 and B3 as outputs and set them LOW --> D6 (SEL), D0 (OE)
-    PORTD &= ~B01000001;
     DDRD  |=  B01000001;
-
+	PORTD &= ~B01000001;
+    
     // Wait for the controller(s) to settle
     delay(100);
   }

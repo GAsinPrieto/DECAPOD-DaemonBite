@@ -71,6 +71,7 @@ uint8_t reverse(uint8_t in)
 
 
 
+
 //PCE
 #define SELECT_PAUSE 20  // How many microseconds to wait after setting select/enable lines?
 #define FRAME_TIME 16667 // The time of one "frame" in µs (used for turbo functionality)
@@ -209,7 +210,7 @@ void setup() {
     PORTF = B00000000;  
   }
   
-  pinMode(pinSNES, OUTPUT);
+  /*pinMode(pinSNES, OUTPUT);
   pinMode(pinNES, OUTPUT);
   pinMode(pinNEOGEO, OUTPUT);
   pinMode(pinGENESIS, OUTPUT);
@@ -237,11 +238,12 @@ void setup() {
       }
     }
   }
-
+*/
   pinMode(pinSNES, INPUT);
   pinMode(pinNES, INPUT);
   pinMode(pinNEOGEO, INPUT);
-  pinMode(pinGENESIS, INPUT);  
+  pinMode(pinGENESIS, INPUT);
+  SISTEMA = GENESIS_;
 
 }
 
@@ -255,6 +257,7 @@ void loop() {
       for (byte gp = 0; gp <= 1; gp++)
     	   Gamepad[gp].reset();
       DDRD  |=  B00000001; // output
+      //pinMode(pinGENESIS, OUTPUT);  
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output
@@ -286,7 +289,7 @@ void loop() {
     */
     
     //PCE
-    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP/I), D5 (R/II), D1 (DOWN/SEL), D2(L/START)
+    // Set D0-D3 as inputs and enable pull-up resistors (port1 data pins) --> D4 (UP), D5 (R), D1 (DOWN), D2(L)
     DDRD  &= ~B00110110;
     PORTD |=  B00110110;
     
@@ -440,7 +443,7 @@ void loop() {
           /*if (gp==0) controllers.readState1();
           else controllers.readState2();*/
           
-          controllers.readState(gp);
+          controllers.readState(/*gp*/);
           
           if (controllers.currentState[gp] != lastState[gp])
           {
@@ -452,6 +455,9 @@ void loop() {
           }
         }
       }
+
+      delay(10);
+      
       break;
 
     case NEOGEO_:
@@ -616,17 +622,17 @@ void loop() {
         PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
         PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
 
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
-        //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
+        buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
 
         // Send data to USB if values have changed
         for (gp = 0; gp < GAMEPAD_COUNT; gp++)
@@ -638,7 +644,7 @@ void loop() {
             Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
             Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
             buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
-            //buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
+            buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
             Gamepad[gp].send();
           }
         }
@@ -651,7 +657,6 @@ void loop() {
 
   }
 
-  delay(10);
 }
 
 void sendLatch()

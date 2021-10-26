@@ -1,4 +1,3 @@
-
 #include "Gamepad.h"
 #include "SegaControllers32U4.h"
 #include "shift_74597.h"
