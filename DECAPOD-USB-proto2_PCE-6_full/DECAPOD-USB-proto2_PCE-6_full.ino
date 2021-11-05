@@ -638,15 +638,18 @@ void loop() {
           //if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0]) ))
           suma = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
           
-          if (suma == 4 && (buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)){
+          if (suma == 4 && (buttons_PCE[gp][1] & B00001111)!=((buttonsPrev_PCE[gp][1]>>4) & B00001111)){
               Gamepad[gp]._GamepadReport_PCE.Y = 0;
               Gamepad[gp]._GamepadReport_PCE.X = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
+              buttonsPrev_PCE[gp][1] |= (buttons_PCE[gp][1]<<4)&B11110000; //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
           }
-          else if (suma < 4 && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || (buttons_PCE[gp][1]!=buttonsPrev_PCE[gp][1]))){
+          else if (suma < 4 && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
               Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
               Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);  
+              buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0]; //UPDATE DPAD CHANGES ONLY FOR DAPD VALID VALUES
+              buttonsPrev_PCE[gp][1] |= (buttons_PCE[gp][1])&B00001111; //SAVE ONLY THE CHANGE OF THE LEAST SIGNIFICANT NIBBLE
           }
 
 /*
@@ -666,8 +669,6 @@ void loop() {
               Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
               Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
             }*/
-            buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
-            //buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
             Gamepad[gp].send();
           }
         }
