@@ -85,6 +85,7 @@ uint8_t reverse(uint8_t in)
 #define RIGHT_SH 1
 
 int suma=5;
+int sumaPrev=0;
 
 
 
@@ -643,7 +644,13 @@ void loop() {
               Gamepad[gp]._GamepadReport_PCE.X = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
-              buttonsPrev_PCE[gp][0] = B00000000;
+              //buttonsPrev_PCE[gp][0] &= B00001111;
+              sumaPrev = suma;
+          }
+          else if (sumaPrev==4){ //ACCOUNT FOR BUTTON III TO VI UNPRESSED
+              sumaPrev = 0;
+              Gamepad[gp]._GamepadReport_PCE.buttons = B00000000; //NO HIGHESTS BUTTONS PRESSED, NOR LOWEST
+              buttonsPrev_PCE[gp][1] |= B11110000; //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
           }
           else if ((suma < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
@@ -652,6 +659,7 @@ void loop() {
               buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0]; //UPDATE DPAD CHANGES ONLY FOR DAPD VALID VALUES
               buttonsPrev_PCE[gp][1] |= (buttons_PCE[gp][1]&B00001111); //SAVE ONLY THE CHANGE OF THE LEAST SIGNIFICANT NIBBLE
           }
+          
 
 /*
           
