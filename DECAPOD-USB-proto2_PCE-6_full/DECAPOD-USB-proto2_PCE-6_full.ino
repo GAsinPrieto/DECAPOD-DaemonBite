@@ -84,8 +84,8 @@ uint8_t reverse(uint8_t in)
 #define LEFT_SH  3
 #define RIGHT_SH 1
 
-int suma=5;
-int sumaPrev=0;
+int suma[2]={5,5};
+int sumaPrev[2]={0,0};
 
 
 
@@ -254,9 +254,9 @@ void loop() {
 
   if (SISTEMA == GENESIS_)
   {
+      controllers.setup_controllers();
       for (byte gp = 0; gp <= 1; gp++)
     	   Gamepad[gp].reset();
-      DDRD  |=  B00000001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output
@@ -442,7 +442,7 @@ void loop() {
           /*if (gp==0) controllers.readState1();
           else controllers.readState2();*/
           
-          controllers.readState(gp);
+          controllers.readState(/*gp*/);
           
           if (controllers.currentState[gp] != lastState[gp])
           {
@@ -454,6 +454,9 @@ void loop() {
           }
         }
       }
+
+      delay(10);
+      
       break;
 
     case NEOGEO_:
@@ -618,17 +621,17 @@ void loop() {
         PORTD |= B01000000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read DPAD for controller 2
         PORTD &= ~B01000000;                        // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4);         // Read buttons for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PIND & B00110000) >> 4); // Read buttons for controller 2
 
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
-        //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
+        buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
 
         // Send data to USB if values have changed
         for (gp = 0; gp < GAMEPAD_COUNT; gp++)
@@ -637,22 +640,22 @@ void loop() {
           //if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
           //if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111 || buttons_PCE[gp][1]&B00001111 != buttonsPrev_PCE[gp][1]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1]) ))
           //if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0]) ))
-          suma = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
+          suma[gp] = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
           
-          if ((suma == 4) && ((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000)){
+          if ((suma[gp] == 4) && ((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000)){
               Gamepad[gp]._GamepadReport_PCE.Y = 0;
               Gamepad[gp]._GamepadReport_PCE.X = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
               //buttonsPrev_PCE[gp][0] &= B00001111;
-              sumaPrev = suma;
+              sumaPrev[gp] = suma[gp];
           }
-          else if (sumaPrev==4){ //ACCOUNT FOR BUTTON III TO VI UNPRESSED
-              sumaPrev = 0;
+          else if (sumaPrev[gp]==4){ //ACCOUNT FOR BUTTON III TO VI UNPRESSED
+              sumaPrev[gp] = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = B00000000; //NO HIGHESTS BUTTONS PRESSED, NOR LOWEST
               buttonsPrev_PCE[gp][1] |= B11110000; //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
           }
-          else if ((suma < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
+          else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
               Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
               Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);  
@@ -690,7 +693,6 @@ void loop() {
 
   }
 
-  delay(10);
 }
 
 void sendLatch()
