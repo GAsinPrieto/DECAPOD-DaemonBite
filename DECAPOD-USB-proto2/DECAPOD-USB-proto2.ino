@@ -649,10 +649,11 @@ void loop() {
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
               sumaPrev[gp] = suma[gp];
           }
-          else if (sumaPrev[gp] == 4){ //ACCOUNT FOR BUTTONS III TO VI UNPRESSED
+          else if (sumaPrev[gp] == 4 && ((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000)){ //ACCOUNT FOR BUTTONS III TO VI UNPRESSED
               sumaPrev[gp] = 0;
-              Gamepad[gp]._GamepadReport_PCE.buttons = B00000000; //NO HIGHESTS BUTTONS PRESSED, NOR LOWEST
-              buttonsPrev_PCE[gp][1] &= B00001111; //ALL ZEROS ON THE MOST SIGNIFICANT NIBBLE
+              Gamepad[gp]._GamepadReport_PCE.buttons = B00000000; //NO HIGHEST BUTTONS PRESSED, NOR LOWEST
+              //buttonsPrev_PCE[gp][1] &= B00001111; //ALL ZEROS ON THE MOST SIGNIFICANT NIBBLE
+              buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
           }
           else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
