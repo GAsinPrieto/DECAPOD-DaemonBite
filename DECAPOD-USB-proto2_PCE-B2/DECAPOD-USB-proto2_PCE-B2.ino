@@ -642,14 +642,14 @@ void loop() {
           
           if (suma[gp] == 4){
             if (buttons_PCE[gp][1] !=buttonsPrev_PCE_B[gp]){
-              Gamepad[gp]._GamepadReport_PCE.Y = 0;
+              /*Gamepad[gp]._GamepadReport_PCE.Y = 0;
               Gamepad[gp]._GamepadReport_PCE.X = 0;
-              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1]<< 4) & B11110000;  
+              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
               buttonsPrev_PCE_B[gp] = buttons_PCE[gp][1]; //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
               buttonsPrev_PCE_A[gp][0] = B00000000;
               buttonsPrev_PCE_A[gp][1] = B00000000;
-              //sumaPrev[gp] = suma[gp];  
-              Gamepad[gp].send();   
+              //sumaPrev[gp] = suma[gp];     
+              Gamepad[gp].send();*/
             }
           }
           else if ((buttons_PCE[gp][0]!=buttonsPrev_PCE_A[gp]) || (buttons_PCE[gp][1]!=buttonsPrev_PCE_A[gp][1])){
@@ -662,7 +662,6 @@ void loop() {
               Gamepad[gp].send();
           }          
 
-          
         }
 
         break;
