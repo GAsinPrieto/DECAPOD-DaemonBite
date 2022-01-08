@@ -85,7 +85,7 @@ uint8_t reverse(uint8_t in)
 #define RIGHT_SH 1
 
 int suma[2]={5,5};
-int sumaPrev[2]={0,0};
+//int sumaPrev[2]={0,0};
 
 
 
@@ -643,20 +643,20 @@ void loop() {
           suma[gp] = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
           
           if ((suma[gp] == 4) && (((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000))){
-              Gamepad[gp]._GamepadReport_PCE.Y = 0;
-              Gamepad[gp]._GamepadReport_PCE.X = 0;
+              //Gamepad[gp]._GamepadReport_PCE.Y = 0;
+              //Gamepad[gp]._GamepadReport_PCE.X = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
-              sumaPrev[gp] = suma[gp];
+              //sumaPrev[gp] = suma[gp];
               Gamepad[gp].send();
           }
-          else if (sumaPrev[gp] == 4 && (((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000))){ //ACCOUNT FOR BUTTONS III TO VI UNPRESSED
+          /*else if (sumaPrev[gp] == 4 && (((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000))){ //ACCOUNT FOR BUTTONS III TO VI UNPRESSED
               sumaPrev[gp] = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = B00000000; //NO HIGHEST BUTTONS PRESSED, NOR LOWEST
               //buttonsPrev_PCE[gp][1] &= B00001111; //ALL ZEROS ON THE MOST SIGNIFICANT NIBBLE
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
               Gamepad[gp].send();
-          }
+          }*/
           else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
               Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
