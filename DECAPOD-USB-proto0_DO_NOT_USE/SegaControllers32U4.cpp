@@ -251,7 +251,7 @@ void SegaControllers32U4::readPort2()
       _connected[1] = (bitRead(_inputReg2_2, DB9_PIN3_BIT1) == LOW && bitRead(_inputReg2_1, DB9_PIN4_BIT1) == LOW);
       
       // Check for six button mode
-      _sixButtonMode[1] = (bitRead(_inputReg2_2, DB9_PIN1_BIT1) == LOW && bitRead(_inputReg3, DB9_PIN2_BIT1) == LOW);
+      _sixButtonMode[1] = (bitRead(_inputReg2_2, DB9_PIN1_BIT1) == LOW && bitRead(_inputReg2_2, DB9_PIN2_BIT1) == LOW);
 
       // Read input pins for A and Start 
       if(_connected[1])
