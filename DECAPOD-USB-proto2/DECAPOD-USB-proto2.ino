@@ -426,7 +426,7 @@ void loop() {
         }
 
 
-		    controllers.readState2();
+		controllers.readState2();
         gp = 1;
         if (controllers.currentState[gp] != lastState[gp])
         {
@@ -436,8 +436,6 @@ void loop() {
           Gamepad[gp].send();
           lastState[gp] = controllers.currentState[gp];
         }*/
-
-
         for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
           
           /*if (gp==0) controllers.readState1();
@@ -653,11 +651,9 @@ void loop() {
               buttonsPrev_PCE_A[gp] = buttons_PCE[gp][1];
               Gamepad[gp].send();
           }
-          
         }
-    }
-		break;
-  
+	}
+	break;
 
   }
 }

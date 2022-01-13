@@ -26,6 +26,7 @@
 
 #pragma once
 
+#include <Arduino.h>
 #include "HID.h"
 
 extern const char* gp_serial;
@@ -51,7 +52,7 @@ typedef struct {
 } GamepadReport_SNES;
 
 typedef struct {
-  uint8_t buttons : 4;
+  uint8_t buttons : 8;
 
   int8_t X;
   int8_t Y;  

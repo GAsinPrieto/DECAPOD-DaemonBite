@@ -325,7 +325,7 @@ void loop() {
     case SNES_:
       while (1)
       {
-        Serial.println("SNES");
+        //Serial.println("SNES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         { // Pulse latch
@@ -378,7 +378,7 @@ void loop() {
     case NES_:
       while (1)
       {
-        Serial.println("NES");
+        //Serial.println("NES");
         // See if enough time has passed since last button read
         if ((micros() - microsButtons) > BUTTON_READ_DELAY)
         {
@@ -415,8 +415,8 @@ void loop() {
     case GENESIS_:
       while (1)
       {
-        Serial.println("GENESIS");
-        controllers.readState1();
+        //Serial.println("GENESIS");
+        /*controllers.readState1();
         gp = 0;
         if (controllers.currentState[gp] != lastState[gp])
         {
@@ -437,8 +437,27 @@ void loop() {
           Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
           Gamepad[gp].send();
           lastState[gp] = controllers.currentState[gp];
+        }*/
+        for (gp = 0; gp < GAMEPAD_COUNT; gp++) {
+          
+          /*if (gp==0) controllers.readState1();
+          else controllers.readState2();*/
+          
+          controllers.readState(/*gp*/);
+          
+          if (controllers.currentState[gp] != lastState[gp])
+          {
+            Gamepad[gp]._GamepadReport_GENESIS.buttons = controllers.currentState[gp] >> 4;
+            Gamepad[gp]._GamepadReport_GENESIS.Y = ((controllers.currentState[gp] & SC_BTN_DOWN) >> SC_BIT_SH_DOWN) - ((controllers.currentState[gp] & SC_BTN_UP) >> SC_BIT_SH_UP);
+            Gamepad[gp]._GamepadReport_GENESIS.X = ((controllers.currentState[gp] & SC_BTN_RIGHT) >> SC_BIT_SH_RIGHT) - ((controllers.currentState[gp] & SC_BTN_LEFT) >> SC_BIT_SH_LEFT);
+            Gamepad[gp].send();
+            lastState[gp] = controllers.currentState[gp];
+          }
         }
       }
+
+      delay(10);
+      
       break;
 
     case NEOGEO_:
@@ -447,7 +466,7 @@ void loop() {
 
       while (1)
       {
-        Serial.println("NEOGEO");
+        //Serial.println("NEOGEO");
         // Get current time, the millis() function should take about 2µs to complete
         millisNow = millis();
 
@@ -584,7 +603,7 @@ void loop() {
     case PCE_:
       while (1)
       {
-        Serial.println("PCE");
+        //Serial.println("PCE");
         // Handle clock for turbo functionality
         microsNow = micros();
         if ((microsNow - microsEnable) >= FRAME_TIME)
@@ -603,42 +622,42 @@ void loop() {
         PORTB |= B00010000;                        // Set SELECT pin HIGH
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][0] = ((PIND & B00000110) << 1) | ((PINB & B00100000) >> 4) | ((PIND & B00010000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][0] = (PINF & B11110000) >> 4; // Read DPAD for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][0] = ((PIND & B00000110) << 1) | ((PINB & B00100000) >> 4) | ((PIND & B00010000) >> 4);          // Read DPAD for controller 2
         PORTB &= ~B00010000;                       // Set SELECT pin LOW
         delayMicroseconds(SELECT_PAUSE);           // Wait a while...
         buttons_PCE[0][1] = ((PIND & B00000110) << 1) | ((PINB & B00100000) >> 4) | ((PIND & B00010000) >> 4);          // Read DPAD for controller 1
-        //if (GAMEPAD_COUNT == 2)
-        //  buttons_PCE[1][1] = (PINF & B11110000) >> 4; // Read buttons for controller 2
+        if (GAMEPAD_COUNT == 2)
+          buttons_PCE[1][1] = ((PIND & B00000110) << 1) | ((PINB & B00100000) >> 4) | ((PIND & B00010000) >> 4);          // Read buttons for controller 2
 
         // Invert the readings so a 1 means a pressed button
         buttons_PCE[0][0] = ~buttons_PCE[0][0]; buttons_PCE[0][1] = ~buttons_PCE[0][1];
-        //buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
+        buttons_PCE[1][0] = ~buttons_PCE[1][0]; buttons_PCE[1][1] = ~buttons_PCE[1][1];
 
         // Send data to USB if values have changed
         for (gp = 0; gp < GAMEPAD_COUNT; gp++)
         {
           // Has any buttons changed state?
-          if (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0] || buttons_PCE[gp][1] != buttonsPrev_PCE[gp][1] )
-          {
-            Gamepad[gp]._GamepadReport_PCE.buttons = buttons_PCE[gp][1];
-            Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
-            Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
-            buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0];
-            buttonsPrev_PCE[gp][1] = buttons_PCE[gp][1];
-            Gamepad[gp].send();
+          suma[gp] = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
+          
+          if ((suma[gp] == 4) && (buttons_PCE[gp][1]!=buttonsPrev_PCE_B[gp])){
+              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
+              buttonsPrev_PCE_B[gp] = buttons_PCE[gp][1];
+              Gamepad[gp].send();
+          }
+          else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp]) || (buttons_PCE[gp][1]!=buttonsPrev_PCE_A[gp]))){
+              Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
+              Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
+              Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);  
+              buttonsPrev_PCE[gp]/*[0]*/ = buttons_PCE[gp][0];
+              buttonsPrev_PCE_A[gp] = buttons_PCE[gp][1];
+              Gamepad[gp].send();
           }
         }
-
-      }
-
-
-      break;
-
+	}
+	break;
 
   }
-
-  delay(10);
 }
 
 void sendLatch()

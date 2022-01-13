@@ -34,34 +34,9 @@
 SegaControllers32U4::SegaControllers32U4(void)
 {
   // Setup input pins (A0,A1,A2,A3,14,15 or PF7,PF6,PF5,PF4,PB3,PB1)
-  /*DDRF  &= ~B11110000; // input
-  PORTF |=  B11110000; // high to enable internal pull-up
-  DDRB  &= ~B00001010; // input
-  PORTB |=  B00001010; // high to enable internal pull-up
-  // Setup input pins (TXO,RXI,2,3,4,6 or PD3,PD2,PD1,PD0,PD4,PD7)
-  DDRD  &= ~B10011111; // input
-  PORTD |=  B10011111; // high to enable internal pull-up
-
-  DDRC  |= B01000000; // Select pins as output
-  DDRE  |= B01000000; 
-  PORTC |= B01000000; // Select pins high
-  PORTE |= B01000000;*/
-
-  /*// Setup input pins (TXO,RXI,2,3,4,6 or PD3,PD2,PD1,PD0,PD4,PD7)
-  DDRD  &= ~B11011110; // input
-  PORTD |=  B11011110; // high to enable internal pull-up
-
-  DDRE  |= B01000000; 
-  DDRD  |= B00100001; // Select pins as output
-  PORTD |= B00100000; // Select pins high
-  PORTE |= B01000000;
-  //PORTD &= B11111110; // Controller select pin low - controller 1
-  //PORTD |= B00000001; // Controller select pin high - controller 2*/
-  
   _pinSelect1 = true;
   _pinSelect2 = true;
-  //_pinSelect/*[0]*/ = true;
-  //_pinSelect[1] = true;
+
   for(byte i=0; i<=1; i++)
   {
     currentState[i] = 0;
@@ -70,53 +45,6 @@ SegaControllers32U4::SegaControllers32U4(void)
     _ignoreCycles[i] = 0;
   }
 }
-
-/*void SegaControllers32U4::readState1()
-{
-  //CONTROLLER 1
-  
-  PORTD &= B11111110; // Controller select pin low - controller 1
-  
-  // Set the select pins low/high
-  _pinSelect1 = !_pinSelect1;
-  if(!_pinSelect1) {
-    PORTD &= ~B00100000;
-  } else {
-    PORTD |=  B00100000;
-  }
-
-  
-  // Short delay to stabilise outputs in controller
-  delayMicroseconds(SC_CYCLE_DELAY);
-
-  // Read all input registers
-  _inputReg3 = PIND;
-  //readPort1();
-  readPort(0);
-}
-
-void SegaControllers32U4::readState2()
-{
-  PORTD |= B00000001; // Controller select pin high - controller 2
-  
-  
-  //CONTROLLER 2
-  // Set the select pins low/high
-  _pinSelect2 = !_pinSelect2;
-  if(!_pinSelect2) {
-    PORTD &= ~B00100000;
-  } else {
-    PORTD |=  B00100000;
-  }
-  
-
-  // Short delay to stabilise outputs in controller
-  delayMicroseconds(SC_CYCLE_DELAY);
-  // Read all input registers
-  _inputReg3 = PIND;
-  //readPort2();
-  readPort(1);
-}*/
 
 void SegaControllers32U4::setup_controllers(){
   // Setup input pins (TXO,RXI,2,3,4,6 or PD3,PD2,PD1,PD0,PD4,PD7)
@@ -130,12 +58,10 @@ void SegaControllers32U4::setup_controllers(){
 }
 
 
-void SegaControllers32U4::readState(/*byte gp*/)
-{  
-  PORTD &= B11111110; // Controller select pin low - controller 1
-
-  delayMicroseconds(2);
-
+void SegaControllers32U4::readState()
+{
+	PORTD &= B11111110; // Controller select pin low - controller 1
+	delayMicroseconds(2);
   // Set the select pins low/high
   _pinSelect1 = !_pinSelect1;
   if(!_pinSelect1) {
@@ -333,79 +259,3 @@ void SegaControllers32U4::readPort2()
     }
   }
 }
-
-
-
-/*void SegaControllers32U4::readPort(byte gp)
-{
-  if(_ignoreCycles[gp] <= 0)
-  {
-    
-    if(_pinSelect[gp]) // Select pin is HIGH
-    {
-      if(_connected[gp])
-      {
-        // Check if six button mode is active
-        if(_sixButtonMode[gp])
-        {
-          // Read input pins for X, Y, Z, Mode  //PD6 y PD4, PD3, PD1 en lugar de PF4-7
-          (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_Z : currentState[gp] &= ~SC_BTN_Z; //UP
-          (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) ? currentState[gp] |= SC_BTN_Y : currentState[gp] &= ~SC_BTN_Y; //DW
-          (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) ? currentState[gp] |= SC_BTN_X : currentState[gp] &= ~SC_BTN_X; //L
-          (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) ? currentState[gp] |= SC_BTN_MODE : currentState[gp] &= ~SC_BTN_MODE; //R
-          _sixButtonMode[gp] = false;
-          _ignoreCycles[gp] = 2; // Ignore the two next cycles (cycles 6 and 7 in table above)
-        }
-        else
-        {
-          // Read input pins for Up, Down, Left, Right, B, C
-          (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_UP : currentState[gp] &= ~SC_BTN_UP;
-          (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) ? currentState[gp] |= SC_BTN_DOWN : currentState[gp] &= ~SC_BTN_DOWN;
-          (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) ? currentState[gp] |= SC_BTN_LEFT : currentState[gp] &= ~SC_BTN_LEFT;
-          (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) ? currentState[gp] |= SC_BTN_RIGHT : currentState[gp] &= ~SC_BTN_RIGHT;
-          (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) ? currentState[gp] |= SC_BTN_B : currentState[gp] &= ~SC_BTN_B; //A
-          (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) ? currentState[gp] |= SC_BTN_C : currentState[gp] &= ~SC_BTN_C; //START
-        }
-      }
-      else // No Mega Drive controller is connected, use SMS/Atari mode
-      {
-        // Clear current state
-        currentState[gp] = 0;
-        
-        // Read input pins for Up, Down, Left, Right, Fire1, Fire2
-        if (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) { currentState[gp] |= SC_BTN_UP; }
-        if (bitRead(_inputReg, DB9_PIN2_BIT1) == LOW) { currentState[gp] |= SC_BTN_DOWN; }
-        if (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW) { currentState[gp] |= SC_BTN_LEFT; }
-        if (bitRead(_inputReg, DB9_PIN4_BIT1) == LOW) { currentState[gp] |= SC_BTN_RIGHT; }
-        if (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) { currentState[gp] |= SC_BTN_A; }
-        if (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) { currentState[gp] |= SC_BTN_B; }
-      }
-    }
-    else // Select pin is LOW
-    {
-  
-      // Check if a controller is connected
-      _connected[gp] = (bitRead(_inputReg, DB9_PIN3_BIT1) == LOW && bitRead(_inputReg, DB9_PIN4_BIT1) == LOW);
-      
-      // Check for six button mode
-      _sixButtonMode[gp] = (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW && bitRead(_inputReg, DB9_PIN2_BIT1) == LOW);
-      
-      // Read input pins for A and Start 
-      if(_connected[gp])
-      {
-        if(!_sixButtonMode[gp])
-        {
-          (bitRead(_inputReg, DB9_PIN6_BIT1) == LOW) ? currentState[gp] |= SC_BTN_A : currentState[gp] &= ~SC_BTN_A;
-          (bitRead(_inputReg, DB9_PIN9_BIT1) == LOW) ? currentState[gp] |= SC_BTN_START : currentState[gp] &= ~SC_BTN_START; 
-        }
-      }
-    }
-  }
-  else
-  {
-    if(_ignoreCycles[gp]-- == 2) // Decrease the ignore cycles counter and read 8bitdo home in first "ignored" cycle, this cycle is unused on normal 6-button controllers
-    {
-      (bitRead(_inputReg, DB9_PIN1_BIT1) == LOW) ? currentState[gp] |= SC_BTN_HOME : currentState[gp] &= ~SC_BTN_HOME;
-    }
-  }
-}*/
