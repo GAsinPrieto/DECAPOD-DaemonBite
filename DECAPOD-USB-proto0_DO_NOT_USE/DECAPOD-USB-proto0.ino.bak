@@ -256,7 +256,7 @@ void loop() {
 	controllers.setup_controllers();
 	for (byte gp = 0; gp <= 1; gp++)
 		Gamepad[gp].reset();
-//	DDRD  |=  B00000001; // output
+	DDRD  |=  B00000001; // output
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10010000; // output

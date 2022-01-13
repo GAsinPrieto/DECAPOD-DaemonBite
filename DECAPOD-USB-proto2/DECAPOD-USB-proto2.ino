@@ -255,9 +255,9 @@ void loop() {
 
   if (SISTEMA == GENESIS_)
   {
-      controllers.setup_controllers();
-      for (byte gp = 0; gp <= 1; gp++)
-    	   Gamepad[gp].reset();
+	controllers.setup_controllers();
+	for (byte gp = 0; gp <= 1; gp++)
+		Gamepad[gp].reset();
   }
   else if (SISTEMA == NES_ || SISTEMA == SNES_) {
 	DDRD  |=  B10110000; // output
@@ -655,10 +655,11 @@ void loop() {
           }
           
         }
-
+    }
 		break;
-  }
+  
 
+  }
 }
 
 void sendLatch()
