@@ -162,7 +162,9 @@ uint8_t btnBits_NES[BUTTON_COUNT] = {0x20, 0x10, 0x40, 0x80, UP, DOWN, LEFT, RIG
 //PCE
 // Controllers
 uint8_t buttons_PCE[2][2]     = {{0, 0}, {0, 0}};
-uint8_t buttonsPrev_PCE[2][2] = {{0, 0}, {0, 0}};
+uint8_t buttonsPrev_PCE[2]/*[2]*/ = /*{{0, 0}, */{0, 0}/*}*/;
+uint8_t buttonsPrev_PCE_A[2]/*[2]*/ = /*{{0, 0}, */{0, 0}/*}*/;
+uint8_t buttonsPrev_PCE_B[2] = {0, 0};
 
 // Turbo timing
 uint32_t microsNow = 0;
@@ -642,11 +644,13 @@ void loop() {
           //if ((buttons_PCE[gp][0]&B00001111 != buttonsPrev_PCE[gp][0]&B00001111) || (((((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH))<4) && (buttons_PCE[gp][0] != buttonsPrev_PCE[gp][0]) ))
           suma[gp] = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) + ((buttons_PCE[gp][0] & UP) >> UP_SH) + ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) + ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);
           
-          if ((suma[gp] == 4) && (((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000))){
+          //if ((suma[gp] == 4) && (((buttons_PCE[gp][1]<<4) & B11110000)!=(buttonsPrev_PCE[gp][1] & B11110000))){
+          if ((suma[gp] == 4) && (buttons_PCE[gp][1]!=buttonsPrev_PCE_B[gp])){
               //Gamepad[gp]._GamepadReport_PCE.Y = 0;
               //Gamepad[gp]._GamepadReport_PCE.X = 0;
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111) << 4;  
-              buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
+              //buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
+              buttonsPrev_PCE_B[gp] = buttons_PCE[gp][1];
               //sumaPrev[gp] = suma[gp];
               Gamepad[gp].send();
           }
@@ -657,12 +661,14 @@ void loop() {
               buttonsPrev_PCE[gp][1] |= ((buttons_PCE[gp][1]<<4)&B11110000); //SAVE ONLY THE CHANGE OF THE MOST SIGNIFICANT NIBBLE
               Gamepad[gp].send();
           }*/
-          else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
+          //else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp][0]) || ((buttons_PCE[gp][1] & B00001111)!=(buttonsPrev_PCE[gp][1] & B00001111)))){
+          else if ((suma[gp] < 4) && ((buttons_PCE[gp][0]!=buttonsPrev_PCE[gp]) || (buttons_PCE[gp][1]!=buttonsPrev_PCE_A[gp]))){
               Gamepad[gp]._GamepadReport_PCE.buttons = (buttons_PCE[gp][1] & B00001111);
               Gamepad[gp]._GamepadReport_PCE.Y = ((buttons_PCE[gp][0] & DOWN_PCE) >> DOWN_SH) - ((buttons_PCE[gp][0] & UP) >> UP_SH);
               Gamepad[gp]._GamepadReport_PCE.X = ((buttons_PCE[gp][0] & RIGHT_PCE) >> RIGHT_SH) - ((buttons_PCE[gp][0] & LEFT_PCE) >> LEFT_SH);  
-              buttonsPrev_PCE[gp][0] = buttons_PCE[gp][0]; //UPDATE DPAD CHANGES ONLY FOR DAPD VALID VALUES
-              buttonsPrev_PCE[gp][1] |= (buttons_PCE[gp][1]&B00001111); //SAVE ONLY THE CHANGE OF THE LEAST SIGNIFICANT NIBBLE
+              buttonsPrev_PCE[gp]/*[0]*/ = buttons_PCE[gp][0];
+              //buttonsPrev_PCE[gp][1] |= (buttons_PCE[gp][1]&B00001111); //SAVE ONLY THE CHANGE OF THE LEAST SIGNIFICANT NIBBLE
+              buttonsPrev_PCE_A[gp] = buttons_PCE[gp][1];
               Gamepad[gp].send();
           }
           
